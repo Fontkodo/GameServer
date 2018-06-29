@@ -6,6 +6,8 @@ import java.net.*;
 import org.json.simple.*;
 import org.json.simple.parser.*;
 
+import fontkodo.netstring.*;
+
 public class GameServer {
 	
 	private static int connectionCounter;
@@ -19,14 +21,14 @@ public class GameServer {
 		JSONParser p = new JSONParser();
 		JSONObject ob = (JSONObject) p.parse(car);
 		ob.put("connection", connectionCounter++);
-		OutputStreamWriter obw = new OutputStreamWriter(socket.getOutputStream());
-		obw.write(ob.toJSONString());
-		obw.flush();
-		System.out.println(ob);
+		byte[] tempBytes = NetString.toNetStringBytes(ob.toJSONString());
+		socket.getOutputStream().write(tempBytes);
+		socket.getOutputStream().flush();
+		System.out.println(ob.toJSONString());
 	}
 
 	public static void main(String[] args) throws IOException, ParseException {
-		ServerSocket serverSocket = new ServerSocket(8353);
+		ServerSocket serverSocket = new ServerSocket(9999);
 		while(true) {
 			Socket s = serverSocket.accept();
 			System.out.println(serverSocket);
