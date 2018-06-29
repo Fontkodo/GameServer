@@ -15,6 +15,7 @@ public class GameServer {
 	static class Conversation implements Runnable {
 
 		Socket socket;
+		static int counter;
 
 		Conversation(Socket socket) {
 			this.socket = socket;
@@ -22,6 +23,7 @@ public class GameServer {
 
 		@Override
 		public void run() {
+			counter++;
 			try {
 				BufferedInputStream bis = new BufferedInputStream(socket.getInputStream());
 				while (true) {
@@ -29,7 +31,8 @@ public class GameServer {
 					System.out.println("Received: " + content);
 					JSONParser p = new JSONParser();
 					JSONObject ob = (JSONObject) p.parse(content);
-					ob.put("connection", connectionCounter++);
+					ob.put("transactions", connectionCounter++);
+					ob.put("clients", counter);
 					byte[] tempBytes = NetString.toNetStringBytes(ob.toJSONString());
 					socket.getOutputStream().write(tempBytes);
 					socket.getOutputStream().flush();
@@ -42,6 +45,8 @@ public class GameServer {
 				}
 			} catch (Exception e) {
 
+			} finally {
+				counter--;
 			}
 		}
 	}
