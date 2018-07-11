@@ -12,14 +12,22 @@ import fontkodo.netstring.*;
 
 public class GameServer {
 	static BlockingQueue<Event> eventQueue = new ArrayBlockingQueue<Event>(1);
-	
+
 	static class GameState {
 		List<Asteroid> loa = new ArrayList<Asteroid>();
+
+		String serialize() {
+			JSONArray ar = new JSONArray();
+			for (Asteroid a : loa) {
+				ar.add(a.toJSON());
+			}
+			return ar.toJSONString();
+		}
 	}
-	
+
 	static class QueueMonitor implements Runnable {
 		GameState gamestate = new GameState();
-		
+
 		void handleAsteroidQuantity() throws IOException {
 			int madeChange = 0;
 			ArrayList<Asteroid> keepers = new ArrayList<Asteroid>();
@@ -36,10 +44,11 @@ public class GameServer {
 			}
 			gamestate.loa = keepers;
 			if (madeChange > 0) {
-				System.out.println("Made " + madeChange + " changes.");
-				for (Asteroid a : gamestate.loa) {
-					System.out.println(a.imgURL);
-				}
+				System.out.println(gamestate.serialize());
+//				System.out.println("Made " + madeChange + " changes.");
+//				for (Asteroid a : gamestate.loa) {
+//					System.out.println(a.imgURL);
+//				}
 			}
 		}
 
@@ -49,7 +58,7 @@ public class GameServer {
 				try {
 					Event event = eventQueue.take();
 					if (event instanceof UserEvent) {
-						for (int i = 0 ; i < 10 ; i++) {
+						for (int i = 0; i < 10; i++) {
 							gamestate.loa.add(AsteroidFactory.makeAsteroid());
 							System.out.println("Adding asteroid per user request");
 						}
@@ -64,9 +73,9 @@ public class GameServer {
 				}
 			}
 		}
-		
+
 	}
-	
+
 	static class TimerEventProducer implements Runnable {
 
 		@Override
@@ -81,9 +90,9 @@ public class GameServer {
 				eventQueue.offer(new TimerEvent());
 			}
 		}
-		
+
 	}
-	
+
 	public static void main(String[] args) throws IOException {
 		Thread eventMonitorThread = new Thread(new QueueMonitor());
 		eventMonitorThread.start();
@@ -94,64 +103,64 @@ public class GameServer {
 			Socket s = ss.accept();
 			s.close();
 			eventQueue.offer(new UserEvent());
-			
+
 		}
 	}
 
 }
 
-//public class GameServer {
+// public class GameServer {
 //
-//	private static int connectionCounter;
+// private static int connectionCounter;
 //
-//	static class Conversation implements Runnable {
+// static class Conversation implements Runnable {
 //
-//		Socket socket;
-//		static int counter;
+// Socket socket;
+// static int counter;
 //
-//		Conversation(Socket socket) {
-//			this.socket = socket;
-//		}
+// Conversation(Socket socket) {
+// this.socket = socket;
+// }
 //
-//		@Override
-//		public void run() {
-//			counter++;
-//			try {
-//				BufferedInputStream bis = new BufferedInputStream(socket.getInputStream());
-//				while (true) {
-//					String content = NetString.readString(bis);
-//					System.out.println("Received: " + content);
-//					JSONParser p = new JSONParser();
-//					JSONObject ob = (JSONObject) p.parse(content);
-//					ob.put("transactions", connectionCounter++);
-//					ob.put("clients", counter);
-//					byte[] tempBytes = NetString.toNetStringBytes(ob.toJSONString());
-//					socket.getOutputStream().write(tempBytes);
-//					socket.getOutputStream().flush();
-//					System.out.println(ob.toJSONString());
-//					try {
-//						Thread.sleep(2000);
-//					} catch (InterruptedException e) {
+// @Override
+// public void run() {
+// counter++;
+// try {
+// BufferedInputStream bis = new BufferedInputStream(socket.getInputStream());
+// while (true) {
+// String content = NetString.readString(bis);
+// System.out.println("Received: " + content);
+// JSONParser p = new JSONParser();
+// JSONObject ob = (JSONObject) p.parse(content);
+// ob.put("transactions", connectionCounter++);
+// ob.put("clients", counter);
+// byte[] tempBytes = NetString.toNetStringBytes(ob.toJSONString());
+// socket.getOutputStream().write(tempBytes);
+// socket.getOutputStream().flush();
+// System.out.println(ob.toJSONString());
+// try {
+// Thread.sleep(2000);
+// } catch (InterruptedException e) {
 //
-//					}
-//				}
-//			} catch (Exception e) {
+// }
+// }
+// } catch (Exception e) {
 //
-//			} finally {
-//				counter--;
-//			}
-//		}
-//	}
+// } finally {
+// counter--;
+// }
+// }
+// }
 //
-//	public static void main(String[] args) throws IOException, ParseException {
-//		ServerSocket serverSocket = new ServerSocket(9999);
-//		while (true) {
-//			Socket s = serverSocket.accept();
-//			Runnable r = new Conversation(s);
-//			Thread t = new Thread(r);
-//			t.start();
-//		}
+// public static void main(String[] args) throws IOException, ParseException {
+// ServerSocket serverSocket = new ServerSocket(9999);
+// while (true) {
+// Socket s = serverSocket.accept();
+// Runnable r = new Conversation(s);
+// Thread t = new Thread(r);
+// t.start();
+// }
 //
-//	}
+// }
 //
-//}
+// }

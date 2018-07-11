@@ -5,6 +5,8 @@ import java.io.IOException;
 import javafx.geometry.*;
 import javafx.scene.image.*;
 
+import org.json.simple.*;
+
 public class Asteroid {
 	final Velocity vel;
 	final Point2D loc;
@@ -50,5 +52,13 @@ public class Asteroid {
 			this.loc = loc;
 			this.angle = angle;
 		}
+	}
+	
+	public JSONObject toJSON() {
+		JSONObject ob = new JSONObject();
+		ob.put("rotvel", this.rotvel);
+		ob.put("timestamp", this.timestamp);
+		ob.put("imgURL", this.imgURL);
+		return ob;
 	}
 }
