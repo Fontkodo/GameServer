@@ -17,7 +17,8 @@ public final class AsteroidFactory {
 		Point2D loc = new Point2D(400,400);
 		double rotvel = random.nextDouble()/1000;
 		Velocity vel = new Velocity(random.nextDouble()*0.1, random.nextDouble()*0.1);
+		String imgURL = "http://blasteroids.prototyping.site/assets/images/asteroids/asteroid" + random.nextInt(9) + ".png";
 		
-		return new Asteroid(vel, loc, rotvel);
+		return new Asteroid(vel, loc, rotvel, imgURL);
 	}
 }

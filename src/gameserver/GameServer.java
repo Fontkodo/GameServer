@@ -21,19 +21,26 @@ public class GameServer {
 		GameState gamestate = new GameState();
 		
 		void handleAsteroidQuantity() throws IOException {
+			int madeChange = 0;
 			ArrayList<Asteroid> keepers = new ArrayList<Asteroid>();
 			for (Asteroid a : gamestate.loa) {
 				if (a.inBounds(800, 800)) {
 					keepers.add(a);
 				} else {
-					System.out.println("Asteroid went out of bounds.");
+					madeChange++;
 				}
 			}
 			while (keepers.size() < 5) {
 				keepers.add(AsteroidFactory.makeAsteroid());
+				madeChange++;
 			}
 			gamestate.loa = keepers;
-			System.out.println("Size = " + gamestate.loa.size());
+			if (madeChange > 0) {
+				System.out.println("Made " + madeChange + " changes.");
+				for (Asteroid a : gamestate.loa) {
+					System.out.println(a.imgURL);
+				}
+			}
 		}
 
 		@Override
@@ -41,6 +48,12 @@ public class GameServer {
 			while (true) {
 				try {
 					Event event = eventQueue.take();
+					if (event instanceof UserEvent) {
+						for (int i = 0 ; i < 10 ; i++) {
+							gamestate.loa.add(AsteroidFactory.makeAsteroid());
+							System.out.println("Adding asteroid per user request");
+						}
+					}
 					handleAsteroidQuantity();
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
@@ -60,12 +73,11 @@ public class GameServer {
 		public void run() {
 			while (true) {
 				try {
-					Thread.sleep(1000);
+					Thread.sleep(10);
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				System.out.println("Placing event into queue");
 				eventQueue.offer(new TimerEvent());
 			}
 		}
