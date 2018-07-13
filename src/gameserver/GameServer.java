@@ -46,7 +46,7 @@ public class GameServer {
 			if (madeChange > 0) {
 				// System.out.println(gamestate.serialize());
 				String txt = gamestate.serialize();
-				serializationQueue.offer(txt);
+				ClientConversation.offer(txt);
 			}
 		}
 
@@ -91,21 +91,29 @@ public class GameServer {
 
 	}
 
-	static BlockingQueue<String> serializationQueue = new ArrayBlockingQueue<String>(1);
-
 	static class ClientConversation implements Runnable {
+		
+		static Set<ClientConversation> activeConversations = Collections.synchronizedSet(new HashSet<ClientConversation>());
 
 		private Socket s;
+		private BlockingQueue<String> serializationQueue = new ArrayBlockingQueue<String>(1);
 
 		ClientConversation(Socket s) {
 			this.s = s;
 		}
+		
+		static void offer(String serializedWorld) {
+			for(ClientConversation cc : activeConversations) {
+				cc.serializationQueue.offer(serializedWorld);
+			}
+		}
 
 		@Override
 		public void run() {
+			activeConversations.add(this);
 			while (true) {
 				try {
-					String txt = serializationQueue.take();
+					String txt = this.serializationQueue.take();
 					byte[] b;
 					try {
 						b = NetString.toNetStringBytes(txt);
@@ -119,6 +127,7 @@ public class GameServer {
 					e.printStackTrace();
 				}
 			}
+			activeConversations.remove(this);
 		}
 
 	}
@@ -133,11 +142,6 @@ public class GameServer {
 			Socket s = ss.accept();
 			Thread t = new Thread(new ClientConversation(s));
 			t.start();
-			try {
-				t.join();
-			} catch (InterruptedException e) {
-
-			}
 		}
 	}
 
