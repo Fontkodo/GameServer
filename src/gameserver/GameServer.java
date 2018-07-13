@@ -44,11 +44,9 @@ public class GameServer {
 			}
 			gamestate.loa = keepers;
 			if (madeChange > 0) {
-				System.out.println(gamestate.serialize());
-//				System.out.println("Made " + madeChange + " changes.");
-//				for (Asteroid a : gamestate.loa) {
-//					System.out.println(a.imgURL);
-//				}
+				// System.out.println(gamestate.serialize());
+				String txt = gamestate.serialize();
+				serializationQueue.offer(txt);
 			}
 		}
 
@@ -93,6 +91,38 @@ public class GameServer {
 
 	}
 
+	static BlockingQueue<String> serializationQueue = new ArrayBlockingQueue<String>(1);
+
+	static class ClientConversation implements Runnable {
+
+		private Socket s;
+
+		ClientConversation(Socket s) {
+			this.s = s;
+		}
+
+		@Override
+		public void run() {
+			while (true) {
+				try {
+					String txt = serializationQueue.take();
+					byte[] b;
+					try {
+						b = NetString.toNetStringBytes(txt);
+						this.s.getOutputStream().write(b);
+						this.s.getOutputStream().flush();
+					} catch (IOException e) {
+						break;
+					}
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+
+	}
+
 	public static void main(String[] args) throws IOException {
 		Thread eventMonitorThread = new Thread(new QueueMonitor());
 		eventMonitorThread.start();
@@ -101,9 +131,13 @@ public class GameServer {
 		ServerSocket ss = new ServerSocket(8353);
 		while (true) {
 			Socket s = ss.accept();
-			s.close();
-			eventQueue.offer(new UserEvent());
+			Thread t = new Thread(new ClientConversation(s));
+			t.start();
+			try {
+				t.join();
+			} catch (InterruptedException e) {
 
+			}
 		}
 	}
 
