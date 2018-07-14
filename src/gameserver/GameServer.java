@@ -133,6 +133,7 @@ public class GameServer {
 	}
 
 	public static void main(String[] args) throws IOException {
+		System.out.println("Server is running.");
 		Thread eventMonitorThread = new Thread(new QueueMonitor());
 		eventMonitorThread.start();
 		Thread TimerThread = new Thread(new TimerEventProducer());
