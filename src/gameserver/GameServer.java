@@ -17,11 +17,13 @@ public class GameServer {
 		List<Asteroid> loa = new ArrayList<Asteroid>();
 
 		String serialize() {
+			JSONObject ob = new JSONObject();
 			JSONArray ar = new JSONArray();
 			for (Asteroid a : loa) {
 				ar.add(a.toJSON());
 			}
-			return ar.toJSONString();
+			ob.put("SpaceObjects", ar);
+			return ob.toJSONString();
 		}
 	}
 
