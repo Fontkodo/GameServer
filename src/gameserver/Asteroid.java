@@ -56,6 +56,11 @@ public class Asteroid {
 	
 	public JSONObject toJSON() {
 		JSONObject ob = new JSONObject();
+		ob.put("vel", this.vel.toJSON());
+		JSONObject loc = new JSONObject();
+		loc.put("x", this.loc.getX());
+		loc.put("y", this.loc.getY());
+		ob.put("loc", loc);
 		ob.put("rotvel", this.rotvel);
 		ob.put("timestamp", this.timestamp);
 		ob.put("imgURL", this.imgURL);
