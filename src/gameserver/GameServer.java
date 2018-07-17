@@ -11,6 +11,9 @@ import org.json.simple.parser.*;
 import fontkodo.netstring.*;
 
 public class GameServer {
+	
+	static long width = 800;
+	static long height = 800;
 	static BlockingQueue<Event> eventQueue = new ArrayBlockingQueue<Event>(1);
 
 	static class GameState {
@@ -23,6 +26,10 @@ public class GameServer {
 				ar.add(a.toJSON());
 			}
 			ob.put("SpaceObjects", ar);
+			JSONObject tempDim = new JSONObject();
+			tempDim.put("Width", width);
+			tempDim.put("Height", height);
+			ob.put("Dimensions", tempDim);
 			return ob.toJSONString();
 		}
 	}
