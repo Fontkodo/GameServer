@@ -12,7 +12,7 @@ import fontkodo.netstring.*;
 
 public class GameServer {
 	
-	static long width = 800;
+	static long width = 1400;
 	static long height = 800;
 	static BlockingQueue<Event> eventQueue = new ArrayBlockingQueue<Event>(1);
 
@@ -41,7 +41,7 @@ public class GameServer {
 			int madeChange = 0;
 			ArrayList<Asteroid> keepers = new ArrayList<Asteroid>();
 			for (Asteroid a : gamestate.loa) {
-				if (a.inBounds(800, 800)) {
+				if (a.inBounds(width, height)) {
 					keepers.add(a);
 				} else {
 					madeChange++;
