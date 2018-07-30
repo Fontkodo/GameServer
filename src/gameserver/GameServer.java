@@ -11,7 +11,7 @@ import org.json.simple.parser.*;
 import fontkodo.netstring.*;
 
 public class GameServer {
-	
+
 	static long width = 1400;
 	static long height = 800;
 	static BlockingQueue<Event> eventQueue = new ArrayBlockingQueue<Event>(1);
@@ -55,7 +55,7 @@ public class GameServer {
 			if (madeChange > 0) {
 				// System.out.println(gamestate.serialize());
 				String txt = gamestate.serialize();
-				ClientConversation.offer(txt);
+				ClientOutgoing.offer(txt);
 			}
 		}
 
@@ -100,20 +100,20 @@ public class GameServer {
 
 	}
 
-	static class ClientConversation implements Runnable {
-		
-		static Set<ClientConversation> activeConversations = Collections.synchronizedSet(new HashSet<ClientConversation>());
+	static class ClientOutgoing implements Runnable {
+
+		static Set<ClientOutgoing> activeConversations = Collections.synchronizedSet(new HashSet<ClientOutgoing>());
 
 		private Socket s;
 		private BlockingQueue<String> serializationQueue = new ArrayBlockingQueue<String>(1);
 
-		ClientConversation(Socket s) {
+		ClientOutgoing(Socket s) {
 			this.s = s;
 		}
-		
+
 		static void offer(String serializedWorld) {
-			for(ClientConversation cc : activeConversations) {
-				cc.serializationQueue.offer(serializedWorld);
+			for (ClientOutgoing co : activeConversations) {
+				co.serializationQueue.offer(serializedWorld);
 			}
 		}
 
@@ -132,11 +132,36 @@ public class GameServer {
 						break;
 					}
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
 				}
 			}
 			activeConversations.remove(this);
+		}
+
+	}
+
+	static class ClientIncoming implements Runnable {
+
+		private Socket s;
+
+		ClientIncoming(Socket s) {
+			this.s = s;
+		}
+
+		@Override
+		public void run() {
+			JSONParser p = new JSONParser();
+			try {
+				while (true) {
+					try {
+						String txt = NetString.readString(s.getInputStream());
+						JSONObject ob = (JSONObject) p.parse(txt);
+						System.out.println(ob);
+					} catch (ParseException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			} catch (IOException e) {}
 		}
 
 	}
@@ -150,8 +175,8 @@ public class GameServer {
 		ServerSocket ss = new ServerSocket(8353);
 		while (true) {
 			Socket s = ss.accept();
-			Thread t = new Thread(new ClientConversation(s));
-			t.start();
+			new Thread(new ClientOutgoing(s)).start();
+			new Thread(new ClientIncoming(s)).start();
 		}
 	}
 
