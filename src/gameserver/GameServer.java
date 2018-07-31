@@ -74,11 +74,21 @@ public class GameServer {
 		}
 
 		void forward(String userid) throws IOException {
-
+			Player p = getPlayer(userid);
+			Velocity newVel = new Velocity(p.vel.x + (Math.cos(p.currentRotation))/1000, p.vel.y + (Math.sin(p.currentRotation))/1000);
+			long elapsedTime = System.currentTimeMillis() - p.timestamp;
+			double dx = p.vel.x*elapsedTime;
+			double dy = p.vel.y*elapsedTime;
+			Player newP = new Player(newVel,
+					new Point2D(p.loc.getX() + dx, p.loc.getY() + dy),
+					p.rotvel,
+					p.userid);
+			newP.currentRotation = p.currentRotation;
+			players.replace(p.userid, newP);
 		}
 
 		void fire(String userid) throws IOException {
-
+			Player p = getPlayer(userid);
 		}
 	}
 
