@@ -14,6 +14,7 @@ public class SpaceObject {
 	final long timestamp;
 	final String imgURL;
 	final Image img;
+	double currentRotation;
 	
 	public SpaceObject(Velocity vel, Point2D loc, double rotvel, String imgURL) throws IOException {
 		this.vel = vel;
@@ -22,6 +23,7 @@ public class SpaceObject {
 		this.timestamp = System.currentTimeMillis();
 		this.imgURL = imgURL;
 		this.img = ImageFactory.getImage(imgURL);
+		this.currentRotation = 0;
 		//System.out.printf("Width: %f\nHeight: %f\nURL: %s", img.getWidth(), img.getHeight(), imgURL);
 	}
 	
@@ -64,6 +66,7 @@ public class SpaceObject {
 		ob.put("rotvel", this.rotvel);
 		ob.put("timestamp", this.timestamp);
 		ob.put("imgURL", this.imgURL);
+		ob.put("currentRotation", this.currentRotation);
 		return ob;
 	}
 }

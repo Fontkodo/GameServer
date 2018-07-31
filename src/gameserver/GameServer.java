@@ -13,15 +13,33 @@ import org.json.simple.parser.*;
 import fontkodo.netstring.*;
 
 public class GameServer {
-	
+
 	static long width = 1400;
 	static long height = 800;
 	static BlockingQueue<Event> eventQueue = new ArrayBlockingQueue<Event>(1);
 
 	static class GameState {
 		List<SpaceObject> loa = new ArrayList<SpaceObject>();
-		 Map<String, Player> players = new HashMap<String, Player>();
+		Map<String, Player> players = new HashMap<String, Player>();
+		private boolean _playersChanged = false;
 
+		Player getPlayer(String userid) throws IOException {
+			_playersChanged = true;
+			if (players.containsKey(userid)) {
+				return players.get(userid);
+			}
+			Player newPlayer = new Player(new Point2D(200, 200), userid);
+			players.put(userid, newPlayer);
+			return newPlayer;
+		}
+
+		boolean playersChanged() {
+			try {
+				return _playersChanged;
+			} finally {
+				_playersChanged = false;
+			}
+		}
 
 		String serialize() {
 			JSONObject ob = new JSONObject();
@@ -40,12 +58,34 @@ public class GameServer {
 			ob.put("Dimensions", tempDim);
 			return ob.toJSONString();
 		}
+
+		void connect(String userid) throws IOException {
+			getPlayer(userid);
+		}
+
+		void left(String userid) throws IOException {
+			Player p = getPlayer(userid);
+			p.currentRotation += 5 * Math.PI / 180;
+		}
+
+		void right(String userid) throws IOException {
+			Player p = getPlayer(userid);
+			p.currentRotation -= 5 * Math.PI / 180;
+		}
+
+		void forward(String userid) throws IOException {
+
+		}
+
+		void fire(String userid) throws IOException {
+
+		}
 	}
 
 	static GameState gameState = new GameState();
 
 	static class QueueMonitor implements Runnable {
-	
+
 		void handleAsteroidQuantity() throws IOException {
 			int madeChange = 0;
 			ArrayList<SpaceObject> keepers = new ArrayList<SpaceObject>();
@@ -61,7 +101,7 @@ public class GameServer {
 				madeChange++;
 			}
 			gameState.loa = keepers;
-			if (madeChange > 0) {
+			if (madeChange > 0 || gameState.playersChanged()) {
 				// System.out.println(gamestate.serialize());
 				String txt = gameState.serialize();
 				ClientOutgoing.offer(txt);
@@ -167,17 +207,30 @@ public class GameServer {
 						System.out.println(ob);
 						String action = (String) ob.get("action");
 						String userid = ob.get("userid").toString();
-						if (action.equals("connect")) {
-							Point2D loc = new Point2D(200, 200);
-							Player player = new Player(loc, userid);
-							gameState.players.put(userid, player);
+						switch (action) {
+						case "connect":
+							gameState.connect(userid);
+							break;
+						case "left":
+							gameState.left(userid);
+							break;
+						case "right":
+							gameState.right(userid);
+							break;
+						case "forward":
+							gameState.forward(userid);
+							break;
+						case "fire":
+							gameState.fire(userid);
+							break;
 						}
 					} catch (ParseException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				}
-			} catch (IOException e) {}
+			} catch (IOException e) {
+			}
 		}
 
 	}
