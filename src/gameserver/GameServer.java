@@ -75,7 +75,7 @@ public class GameServer {
 
 		void forward(String userid) throws IOException {
 			Player p = getPlayer(userid);
-			Velocity newVel = new Velocity(p.vel.x + (Math.cos(p.currentRotation))/1000, p.vel.y + (Math.sin(p.currentRotation))/1000);
+			Velocity newVel = new Velocity(p.vel.x + (Math.cos(p.currentRotation))/1000, p.vel.y - (Math.sin(p.currentRotation))/1000);
 			long elapsedTime = System.currentTimeMillis() - p.timestamp;
 			double dx = p.vel.x*elapsedTime;
 			double dy = p.vel.y*elapsedTime;
