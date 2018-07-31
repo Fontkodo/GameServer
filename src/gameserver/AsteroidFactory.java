@@ -10,7 +10,7 @@ public final class AsteroidFactory {
 
 	static Random random = new Random(new Date().getTime());
 	
-	public static Asteroid makeAsteroid() throws IOException {
+	public static SpaceObject makeAsteroid() throws IOException {
 		
 		Point2D tempLoc = new Point2D(GameServer.width * random.nextDouble(), GameServer.height * random.nextDouble());
 		Point2D loc = new Point2D(0, 0);
@@ -37,6 +37,6 @@ public final class AsteroidFactory {
 		double rotvel = random.nextDouble()/1000;
 		String imgURL = "http://blasteroids.prototyping.site/assets/images/asteroids/asteroid" + random.nextInt(9) + ".png";
 		
-		return new Asteroid(vel, loc, rotvel, imgURL);
+		return new SpaceObject(vel, loc, rotvel, imgURL);
 	}
 }

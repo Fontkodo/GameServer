@@ -5,25 +5,33 @@ import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
 
+import javafx.geometry.Point2D;
+
 import org.json.simple.*;
 import org.json.simple.parser.*;
 
 import fontkodo.netstring.*;
 
 public class GameServer {
-
+	
 	static long width = 1400;
 	static long height = 800;
 	static BlockingQueue<Event> eventQueue = new ArrayBlockingQueue<Event>(1);
 
 	static class GameState {
-		List<Asteroid> loa = new ArrayList<Asteroid>();
+		List<SpaceObject> loa = new ArrayList<SpaceObject>();
+		 Map<String, Player> players = new HashMap<String, Player>();
+
 
 		String serialize() {
 			JSONObject ob = new JSONObject();
 			JSONArray ar = new JSONArray();
-			for (Asteroid a : loa) {
+			for (SpaceObject a : loa) {
 				ar.add(a.toJSON());
+			}
+			for (String key : players.keySet()) {
+				Player p = players.get(key);
+				ar.add(p.toJSON());
 			}
 			ob.put("SpaceObjects", ar);
 			JSONObject tempDim = new JSONObject();
@@ -34,13 +42,14 @@ public class GameServer {
 		}
 	}
 
-	static class QueueMonitor implements Runnable {
-		GameState gamestate = new GameState();
+	static GameState gameState = new GameState();
 
+	static class QueueMonitor implements Runnable {
+	
 		void handleAsteroidQuantity() throws IOException {
 			int madeChange = 0;
-			ArrayList<Asteroid> keepers = new ArrayList<Asteroid>();
-			for (Asteroid a : gamestate.loa) {
+			ArrayList<SpaceObject> keepers = new ArrayList<SpaceObject>();
+			for (SpaceObject a : gameState.loa) {
 				if (a.inBounds(width, height)) {
 					keepers.add(a);
 				} else {
@@ -51,10 +60,10 @@ public class GameServer {
 				keepers.add(AsteroidFactory.makeAsteroid());
 				madeChange++;
 			}
-			gamestate.loa = keepers;
+			gameState.loa = keepers;
 			if (madeChange > 0) {
 				// System.out.println(gamestate.serialize());
-				String txt = gamestate.serialize();
+				String txt = gameState.serialize();
 				ClientOutgoing.offer(txt);
 			}
 		}
@@ -66,7 +75,7 @@ public class GameServer {
 					Event event = eventQueue.take();
 					if (event instanceof UserEvent) {
 						for (int i = 0; i < 10; i++) {
-							gamestate.loa.add(AsteroidFactory.makeAsteroid());
+							gameState.loa.add(AsteroidFactory.makeAsteroid());
 							System.out.println("Adding asteroid per user request");
 						}
 					}
@@ -156,6 +165,13 @@ public class GameServer {
 						String txt = NetString.readString(s.getInputStream());
 						JSONObject ob = (JSONObject) p.parse(txt);
 						System.out.println(ob);
+						String action = (String) ob.get("action");
+						String userid = ob.get("userid").toString();
+						if (action.equals("connect")) {
+							Point2D loc = new Point2D(200, 200);
+							Player player = new Player(loc, userid);
+							gameState.players.put(userid, player);
+						}
 					} catch (ParseException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
