@@ -37,6 +37,6 @@ public final class AsteroidFactory {
 		double rotvel = random.nextDouble()/1000;
 		String imgURL = "http://blasteroids.prototyping.site/assets/images/asteroids/asteroid" + random.nextInt(9) + ".png";
 		
-		return new SpaceObject(vel, loc, rotvel, imgURL);
+		return new SpaceObject(vel, loc, rotvel, imgURL, 0);
 	}
 }

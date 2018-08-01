@@ -14,8 +14,8 @@ import fontkodo.netstring.*;
 
 public class GameServer {
 
-	static long width = 1400;
-	static long height = 800;
+	static long width = 600;
+	static long height = 600;
 	static BlockingQueue<Event> eventQueue = new ArrayBlockingQueue<Event>(1);
 
 	static class GameState {
@@ -33,7 +33,31 @@ public class GameServer {
 			return newPlayer;
 		}
 
-		boolean playersChanged() {
+		boolean playersChanged() throws IOException {
+			for (String p : players.keySet()) {
+				Point2D newLoc = null;
+				if (players.get(p).loc.getX() < -70) {
+					newLoc = new Point2D(width + 70, players.get(p).loc.getY());
+				}
+				else if (players.get(p).loc.getY() < -70) {
+					newLoc = new Point2D(players.get(p).loc.getX(), height + 70);
+				}
+				else if (players.get(p).loc.getX() > width + 70) {
+					newLoc = new Point2D(-70, players.get(p).loc.getY());
+				}
+				else if (players.get(p).loc.getY() > height + 70) {
+					newLoc = new Point2D(players.get(p).loc.getX(), -70);
+				}
+				
+				if (newLoc != null) {
+					players.replace(p, new Player(players.get(p).vel,
+							newLoc,
+							players.get(p).rotvel,
+							players.get(p).currentRotation,
+							players.get(p).userid));
+					_playersChanged = true;
+				}
+			}
 			try {
 				return _playersChanged;
 			} finally {
@@ -82,6 +106,7 @@ public class GameServer {
 			Player newP = new Player(newVel,
 					new Point2D(p.loc.getX() + dx, p.loc.getY() + dy),
 					p.rotvel,
+					p.currentRotation,
 					p.userid);
 			newP.currentRotation = p.currentRotation;
 			players.replace(p.userid, newP);
@@ -111,7 +136,7 @@ public class GameServer {
 				madeChange++;
 			}
 			gameState.loa = keepers;
-			if (madeChange > 0 || gameState.playersChanged()) {
+			if (gameState.playersChanged() || madeChange > 0) {
 				// System.out.println(gamestate.serialize());
 				String txt = gameState.serialize();
 				ClientOutgoing.offer(txt);
@@ -123,12 +148,6 @@ public class GameServer {
 			while (true) {
 				try {
 					Event event = eventQueue.take();
-					if (event instanceof UserEvent) {
-						for (int i = 0; i < 10; i++) {
-							gameState.loa.add(AsteroidFactory.makeAsteroid());
-							System.out.println("Adding asteroid per user request");
-						}
-					}
 					handleAsteroidQuantity();
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
@@ -260,59 +279,3 @@ public class GameServer {
 	}
 
 }
-
-// public class GameServer {
-//
-// private static int connectionCounter;
-//
-// static class Conversation implements Runnable {
-//
-// Socket socket;
-// static int counter;
-//
-// Conversation(Socket socket) {
-// this.socket = socket;
-// }
-//
-// @Override
-// public void run() {
-// counter++;
-// try {
-// BufferedInputStream bis = new BufferedInputStream(socket.getInputStream());
-// while (true) {
-// String content = NetString.readString(bis);
-// System.out.println("Received: " + content);
-// JSONParser p = new JSONParser();
-// JSONObject ob = (JSONObject) p.parse(content);
-// ob.put("transactions", connectionCounter++);
-// ob.put("clients", counter);
-// byte[] tempBytes = NetString.toNetStringBytes(ob.toJSONString());
-// socket.getOutputStream().write(tempBytes);
-// socket.getOutputStream().flush();
-// System.out.println(ob.toJSONString());
-// try {
-// Thread.sleep(2000);
-// } catch (InterruptedException e) {
-//
-// }
-// }
-// } catch (Exception e) {
-//
-// } finally {
-// counter--;
-// }
-// }
-// }
-//
-// public static void main(String[] args) throws IOException, ParseException {
-// ServerSocket serverSocket = new ServerSocket(9999);
-// while (true) {
-// Socket s = serverSocket.accept();
-// Runnable r = new Conversation(s);
-// Thread t = new Thread(r);
-// t.start();
-// }
-//
-// }
-//
-// }

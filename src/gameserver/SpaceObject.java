@@ -16,14 +16,14 @@ public class SpaceObject {
 	final Image img;
 	double currentRotation;
 	
-	public SpaceObject(Velocity vel, Point2D loc, double rotvel, String imgURL) throws IOException {
+	public SpaceObject(Velocity vel, Point2D loc, double rotvel, String imgURL, double currentRotation) throws IOException {
 		this.vel = vel;
 		this.loc = loc;
 		this.rotvel = rotvel;
 		this.timestamp = System.currentTimeMillis();
 		this.imgURL = imgURL;
 		this.img = ImageFactory.getImage(imgURL);
-		this.currentRotation = 0;
+		this.currentRotation = currentRotation;
 		//System.out.printf("Width: %f\nHeight: %f\nURL: %s", img.getWidth(), img.getHeight(), imgURL);
 	}
 	
