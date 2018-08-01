@@ -19,7 +19,8 @@ public class GameServer {
 	static BlockingQueue<Event> eventQueue = new ArrayBlockingQueue<Event>(1);
 
 	static class GameState {
-		List<SpaceObject> loa = new ArrayList<SpaceObject>();
+		List<Asteroid> loa = new ArrayList<Asteroid>();
+		List<Photon> lop = new ArrayList<Photon>();
 		Map<String, Player> players = new HashMap<String, Player>();
 		private boolean _playersChanged = false;
 
@@ -76,6 +77,9 @@ public class GameServer {
 			for (SpaceObject a : loa) {
 				ar.add(a.toJSON());
 			}
+			for (SpaceObject ph : lop) {
+				ar.add(ph.toJSON());
+			}
 			for (String key : players.keySet()) {
 				Player p = players.get(key);
 				ar.add(p.toJSON());
@@ -119,6 +123,11 @@ public class GameServer {
 
 		void fire(String userid) throws IOException {
 			Player p = getPlayer(userid);
+			long elapsed = System.currentTimeMillis() - p.timestamp;
+			double dx = elapsed * p.vel.x;
+			double dy = elapsed * p.vel.y;
+			Point2D newLoc = new Point2D(p.loc.getX() + dx, p.loc.getY() + dy);
+			lop.add(new Photon(newLoc, p.currentRotation));
 		}
 	}
 
@@ -128,8 +137,8 @@ public class GameServer {
 
 		void handleAsteroidQuantity() throws IOException {
 			int madeChange = 0;
-			ArrayList<SpaceObject> keepers = new ArrayList<SpaceObject>();
-			for (SpaceObject a : gameState.loa) {
+			ArrayList<Asteroid> keepers = new ArrayList<Asteroid>();
+			for (Asteroid a : gameState.loa) {
 				if (a.inBounds(width, height)) {
 					keepers.add(a);
 				} else {
@@ -141,6 +150,15 @@ public class GameServer {
 				madeChange++;
 			}
 			gameState.loa = keepers;
+			ArrayList<Photon> phKeepers = new ArrayList<Photon>();
+			for (Photon ph : gameState.lop) {
+				if(ph.inBounds(width, height)) {
+					phKeepers.add(ph);
+				} else {
+					madeChange++;
+				}
+			}
+			gameState.lop = phKeepers;
 			if (gameState.playersChanged() || madeChange > 0) {
 				// System.out.println(gamestate.serialize());
 				String txt = gameState.serialize();
