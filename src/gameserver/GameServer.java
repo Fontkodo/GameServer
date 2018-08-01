@@ -21,6 +21,7 @@ public class GameServer {
 	static class GameState {
 		List<Asteroid> loa = new ArrayList<Asteroid>();
 		List<Photon> lop = new ArrayList<Photon>();
+		List<String> los = new ArrayList<String>();
 		Map<String, Player> players = new HashMap<String, Player>();
 		private boolean _playersChanged = false;
 
@@ -85,6 +86,11 @@ public class GameServer {
 				ar.add(p.toJSON());
 			}
 			ob.put("SpaceObjects", ar);
+			JSONArray sounds = new JSONArray();
+			for (String s : los) {
+				sounds.add(s);
+			}
+			ob.put("Sounds", sounds);
 			JSONObject tempDim = new JSONObject();
 			tempDim.put("Width", width);
 			tempDim.put("Height", height);
@@ -119,6 +125,7 @@ public class GameServer {
 					p.userid);
 			newP.currentRotation = p.currentRotation;
 			players.replace(p.userid, newP);
+			los.add("http://blasteroids.prototyping.site/assets/sounds/thrust.wav");
 		}
 
 		void fire(String userid) throws IOException {
@@ -128,6 +135,7 @@ public class GameServer {
 			double dy = elapsed * p.vel.y;
 			Point2D newLoc = new Point2D(p.loc.getX() + dx, p.loc.getY() + dy);
 			lop.add(new Photon(newLoc, p.currentRotation));
+			los.add("http://blasteroids.prototyping.site/assets/sounds/photon.wav");
 		}
 	}
 
@@ -162,6 +170,7 @@ public class GameServer {
 			if (gameState.playersChanged() || madeChange > 0) {
 				// System.out.println(gamestate.serialize());
 				String txt = gameState.serialize();
+				gameState.los.clear();
 				ClientOutgoing.offer(txt);
 			}
 		}
