@@ -14,8 +14,8 @@ import fontkodo.netstring.*;
 
 public class GameServer {
 
-	static long width = 600;
-	static long height = 600;
+	static long width = 1400;
+	static long height = 800;
 	static BlockingQueue<Event> eventQueue = new ArrayBlockingQueue<Event>(1);
 
 	static class GameState {
@@ -34,27 +34,32 @@ public class GameServer {
 		}
 
 		boolean playersChanged() throws IOException {
-			for (String p : players.keySet()) {
+			for (String key : players.keySet()) {
+				Player p = players.get(key);
+				long elapsed = System.currentTimeMillis() - p.timestamp;
+				double dx = elapsed * p.vel.x;
+				double dy = elapsed * p.vel.y;
+				Point2D oldLoc = new Point2D(p.loc.getX() + dx, p.loc.getY() + dy);
 				Point2D newLoc = null;
-				if (players.get(p).loc.getX() < -70) {
-					newLoc = new Point2D(width + 70, players.get(p).loc.getY());
+				if (oldLoc.getX() < -70) {
+					newLoc = new Point2D(width + 70, oldLoc.getY());
 				}
-				else if (players.get(p).loc.getY() < -70) {
-					newLoc = new Point2D(players.get(p).loc.getX(), height + 70);
+				else if (oldLoc.getY() < -70) {
+					newLoc = new Point2D(oldLoc.getX(), height + 70);
 				}
-				else if (players.get(p).loc.getX() > width + 70) {
-					newLoc = new Point2D(-70, players.get(p).loc.getY());
+				else if (oldLoc.getX() > width + 70) {
+					newLoc = new Point2D(-70, oldLoc.getY());
 				}
-				else if (players.get(p).loc.getY() > height + 70) {
-					newLoc = new Point2D(players.get(p).loc.getX(), -70);
+				else if (oldLoc.getY() > height + 70) {
+					newLoc = new Point2D(oldLoc.getX(), -70);
 				}
 				
 				if (newLoc != null) {
-					players.replace(p, new Player(players.get(p).vel,
+					players.replace(key, new Player(players.get(key).vel,
 							newLoc,
-							players.get(p).rotvel,
-							players.get(p).currentRotation,
-							players.get(p).userid));
+							players.get(key).rotvel,
+							players.get(key).currentRotation,
+							players.get(key).userid));
 					_playersChanged = true;
 				}
 			}
