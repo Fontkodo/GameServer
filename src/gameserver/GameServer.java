@@ -167,8 +167,22 @@ public class GameServer {
 				}
 			}
 			gameState.lop = phKeepers;
+			Set<SpaceObject> destroyed = new HashSet<SpaceObject>();
+			for (Photon ph : gameState.lop) {
+				for (Asteroid a : gameState.loa) {
+					if(a.inContactWith(ph)) {
+						destroyed.add(a);
+						destroyed.add(ph);
+						madeChange++;
+					}
+				}
+			}
+			gameState.loa.removeAll(destroyed);
+			gameState.lop.removeAll(destroyed);
+			if (destroyed.size() != 0) {
+				System.out.println("Got a hit! " + destroyed.size());
+			}
 			if (gameState.playersChanged() || madeChange > 0) {
-				// System.out.println(gamestate.serialize());
 				String txt = gameState.serialize();
 				gameState.los.clear();
 				ClientOutgoing.offer(txt);
@@ -265,7 +279,6 @@ public class GameServer {
 					try {
 						String txt = NetString.readString(s.getInputStream());
 						JSONObject ob = (JSONObject) p.parse(txt);
-						System.out.println(ob);
 						String action = (String) ob.get("action");
 						String userid = ob.get("userid").toString();
 						switch (action) {

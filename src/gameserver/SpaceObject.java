@@ -24,7 +24,6 @@ public class SpaceObject {
 		this.imgURL = imgURL;
 		this.img = ImageFactory.getImage(imgURL);
 		this.currentRotation = currentRotation;
-		//System.out.printf("Width: %f\nHeight: %f\nURL: %s", img.getWidth(), img.getHeight(), imgURL);
 	}
 	
 	public Status getStatus() {
@@ -68,5 +67,13 @@ public class SpaceObject {
 		ob.put("imgURL", this.imgURL);
 		ob.put("currentRotation", this.currentRotation);
 		return ob;
+	}
+	
+	public boolean inContactWith(SpaceObject ob) {
+		Point2D currentLoc = this.getStatus().loc;
+		Point2D obCurrentLoc = ob.getStatus().loc;
+		double distance = currentLoc.distance(obCurrentLoc);
+		boolean result = (distance < (this.getRadius() + ob.getRadius()));
+		return result;
 	}
 }
