@@ -256,6 +256,7 @@ public class GameServer {
 
 		static void offer(String serializedWorld) {
 			for (ClientOutgoing co : activeConversations) {
+				co.serializationQueue.poll();
 				co.serializationQueue.offer(serializedWorld);
 			}
 		}
@@ -265,11 +266,15 @@ public class GameServer {
 			activeConversations.add(this);
 			while (true) {
 				try {
-					String txt = this.serializationQueue.take();
-					byte[] b;
 					try {
-						b = NetString.toNetStringBytes(txt);
-						this.s.getOutputStream().write(b);
+						ByteArrayOutputStream baos = new ByteArrayOutputStream();
+						do {
+							String txt = this.serializationQueue.take();
+							byte[] b;
+							b = NetString.toNetStringBytes(txt);
+							baos.write(b);
+						} while (this.serializationQueue.peek() != null);
+						this.s.getOutputStream().write(baos.toByteArray());
 						this.s.getOutputStream().flush();
 					} catch (IOException e) {
 						break;
