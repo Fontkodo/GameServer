@@ -22,6 +22,7 @@ public class GameServer {
 		List<Asteroid> loa = new ArrayList<Asteroid>();
 		List<Photon> lop = new ArrayList<Photon>();
 		List<String> los = new ArrayList<String>();
+		List<Explosion> loe = new ArrayList<Explosion>();
 		Map<String, Player> players = new HashMap<String, Player>();
 		private boolean _playersChanged = false;
 
@@ -33,6 +34,11 @@ public class GameServer {
 			Player newPlayer = new Player(new Point2D(200, 200), userid);
 			players.put(userid, newPlayer);
 			return newPlayer;
+		}
+		
+		void removePlayer(String userid) throws IOException {
+			_playersChanged = true;
+			players.remove(userid);
 		}
 
 		boolean playersChanged() throws IOException {
@@ -84,6 +90,9 @@ public class GameServer {
 			for (String key : players.keySet()) {
 				Player p = players.get(key);
 				ar.add(p.toJSON());
+			}
+			for (SpaceObject ex : loe) {
+				ar.add(ex.toJSON());
 			}
 			ob.put("SpaceObjects", ar);
 			JSONArray sounds = new JSONArray();
@@ -137,6 +146,10 @@ public class GameServer {
 			lop.add(new Photon(newLoc, p.currentRotation));
 			los.add("http://blasteroids.prototyping.site/assets/sounds/photon.wav");
 		}
+		
+		void disconnect(String userid) throws IOException {
+			removePlayer(userid);
+		}
 	}
 
 	static GameState gameState = new GameState();
@@ -171,6 +184,7 @@ public class GameServer {
 			for (Photon ph : gameState.lop) {
 				for (Asteroid a : gameState.loa) {
 					if(a.inContactWith(ph)) {
+						a.explode();
 						destroyed.add(a);
 						destroyed.add(ph);
 						madeChange++;
@@ -181,6 +195,14 @@ public class GameServer {
 			gameState.lop.removeAll(destroyed);
 			if (destroyed.size() != 0) {
 				System.out.println("Got a hit! " + destroyed.size());
+			}
+			ArrayList<Explosion> exKeepers = new ArrayList<Explosion>();
+			for (Explosion ex : gameState.loe) {
+				if (ex.shouldILive(System.currentTimeMillis())) {
+					exKeepers.add(ex);
+				} else {
+					madeChange++;
+				}
 			}
 			if (gameState.playersChanged() || madeChange > 0) {
 				String txt = gameState.serialize();
@@ -296,6 +318,9 @@ public class GameServer {
 							break;
 						case "fire":
 							gameState.fire(userid);
+							break;
+						case "disconnect":
+							gameState.disconnect(userid);
 							break;
 						}
 					} catch (ParseException e) {

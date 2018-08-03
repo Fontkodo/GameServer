@@ -13,7 +13,7 @@ public class SpaceObject {
 	final double rotvel;
 	final long timestamp;
 	final String imgURL;
-	final Image img;
+	Image img;
 	double currentRotation;
 	
 	public SpaceObject(Velocity vel, Point2D loc, double rotvel, String imgURL, double currentRotation) throws IOException {
