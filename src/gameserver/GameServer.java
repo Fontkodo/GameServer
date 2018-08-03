@@ -166,7 +166,7 @@ public class GameServer {
 					madeChange++;
 				}
 			}
-			while (keepers.size() < 5) {
+			while (keepers.stream().mapToDouble(a -> a.getArea()).sum() < 50000) {
 				keepers.add(AsteroidFactory.makeAsteroid());
 				madeChange++;
 			}
@@ -181,10 +181,12 @@ public class GameServer {
 			}
 			gameState.lop = phKeepers;
 			Set<SpaceObject> destroyed = new HashSet<SpaceObject>();
+			ArrayList<Asteroid> tempLoa = new ArrayList<Asteroid>();
 			for (Photon ph : gameState.lop) {
 				for (Asteroid a : gameState.loa) {
 					if(a.inContactWith(ph)) {
 						gameState.loe.add(a.explode());
+						tempLoa.addAll(a.giveBirth());
 						destroyed.add(a);
 						destroyed.add(ph);
 						madeChange++;
@@ -192,6 +194,7 @@ public class GameServer {
 				}
 			}
 			gameState.loa.removeAll(destroyed);
+			gameState.loa.addAll(tempLoa);
 			gameState.lop.removeAll(destroyed);
 			if (destroyed.size() != 0) {
 				System.out.println("Got a hit! " + destroyed.size());

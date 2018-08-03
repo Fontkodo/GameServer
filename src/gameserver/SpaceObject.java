@@ -11,7 +11,7 @@ import org.json.simple.*;
 
 public class SpaceObject {
 	final Velocity vel;
-	final Point2D loc;
+	Point2D loc;
 	final double rotvel;
 	final long timestamp;
 	String imgURL;
@@ -80,5 +80,9 @@ public class SpaceObject {
 		double distance = currentLoc.distance(obCurrentLoc);
 		boolean result = (distance < (this.getRadius() + ob.getRadius()));
 		return result;
+	}
+	
+	public double getArea() {
+		return this.img.getWidth()*this.img.getHeight()*this.scale;
 	}
 }
