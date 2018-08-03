@@ -184,7 +184,7 @@ public class GameServer {
 			for (Photon ph : gameState.lop) {
 				for (Asteroid a : gameState.loa) {
 					if(a.inContactWith(ph)) {
-						a.explode();
+						gameState.loe.add(a.explode());
 						destroyed.add(a);
 						destroyed.add(ph);
 						madeChange++;
@@ -200,10 +200,10 @@ public class GameServer {
 			for (Explosion ex : gameState.loe) {
 				if (ex.shouldILive(System.currentTimeMillis())) {
 					exKeepers.add(ex);
-				} else {
-					madeChange++;
 				}
+				madeChange++;
 			}
+			gameState.loe = exKeepers;
 			if (gameState.playersChanged() || madeChange > 0) {
 				String txt = gameState.serialize();
 				gameState.los.clear();

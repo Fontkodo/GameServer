@@ -12,7 +12,7 @@ public class SpaceObject {
 	final Point2D loc;
 	final double rotvel;
 	final long timestamp;
-	final String imgURL;
+	String imgURL;
 	Image img;
 	double currentRotation;
 	

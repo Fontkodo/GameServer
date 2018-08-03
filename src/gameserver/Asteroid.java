@@ -10,6 +10,6 @@ public class Asteroid extends SpaceObject{
 	}
 	
 	public Explosion explode() throws IOException {
-		return new Explosion(this.vel, this.loc, this.rotvel, this.currentRotation);
+		return new Explosion(this.vel, this.getStatus().loc, this.rotvel, this.currentRotation);
 	}
 }
