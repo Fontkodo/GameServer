@@ -1,6 +1,8 @@
 package gameserver;
 
 import java.io.IOException;
+import java.util.Date;
+import java.util.Random;
 
 import javafx.geometry.*;
 import javafx.scene.image.*;
@@ -15,6 +17,7 @@ public class SpaceObject {
 	String imgURL;
 	Image img;
 	double currentRotation;
+	double scale;
 	
 	public SpaceObject(Velocity vel, Point2D loc, double rotvel, String imgURL, double currentRotation) throws IOException {
 		this.vel = vel;
@@ -24,6 +27,7 @@ public class SpaceObject {
 		this.imgURL = imgURL;
 		this.img = ImageFactory.getImage(imgURL);
 		this.currentRotation = currentRotation;
+		this.scale = 1;
 	}
 	
 	public Status getStatus() {
@@ -34,7 +38,7 @@ public class SpaceObject {
 	}
 	
 	public double getRadius() {
-		return (Math.max(img.getWidth(), img.getHeight()))/2;
+		return this.scale*(Math.max(img.getWidth(), img.getHeight()))/2;
 	}
 	
 	public boolean inBounds(double maxX, double maxY) {
@@ -66,6 +70,7 @@ public class SpaceObject {
 		ob.put("timestamp", this.timestamp);
 		ob.put("imgURL", this.imgURL);
 		ob.put("currentRotation", this.currentRotation);
+		ob.put("scale", this.scale);
 		return ob;
 	}
 	

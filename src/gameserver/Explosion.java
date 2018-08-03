@@ -6,8 +6,9 @@ import javafx.geometry.Point2D;
 
 public class Explosion extends SpaceObject{
 	
-	public Explosion(Velocity vel, Point2D loc, double rotvel, double currentRotation) throws IOException{
+	public Explosion(Velocity vel, Point2D loc, double rotvel, double currentRotation, double scale) throws IOException{
 		super(vel, loc, rotvel, "http://blasteroids.prototyping.site/assets/images/explosions/Explosion1.png", currentRotation);
+		this.scale = scale;
 	}
 	
 	public boolean shouldILive (long now) {
