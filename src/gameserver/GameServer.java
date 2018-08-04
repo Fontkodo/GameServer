@@ -192,7 +192,7 @@ public class GameServer {
 						}
 					}
 					for (String p : gameState.players.keySet()) {
-						if (gameState.players.get(p).inContactWith(ph)) {
+						if (gameState.players.get(p).inContactWith(ph) && (ph.player != gameState.players.get(p))) {
 							if (gameState.players.get(p).shieldLevel > 0) {
 								gameState.players.get(p).shieldLevel -= 1;
 							}
