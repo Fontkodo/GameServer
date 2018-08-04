@@ -218,29 +218,30 @@ public class GameServer {
 							}
 						}
 					}
-					gameState.loa.removeAll(destroyed);
-					gameState.loa.addAll(tempLoa);
-					gameState.lop.removeAll(destroyed);
-					for (String p : destroyedPlayers) {
-						gameState.players.remove(p);
-					}
-					if ((destroyed.size() != 0) || (destroyedPlayers.size() != 0)) {
-						System.out.println("Got a hit! " + (destroyed.size() + destroyedPlayers.size()));
-					}
-					ArrayList<Explosion> exKeepers = new ArrayList<Explosion>();
-					for (Explosion ex : gameState.loe) {
-						if (ex.shouldILive(System.currentTimeMillis())) {
-							exKeepers.add(ex);
-						}
-						madeChange++;
-					}
-					gameState.loe = exKeepers;
-					if (gameState.playersChanged() || madeChange > 0) {
-						String txt = gameState.serialize();
-						gameState.los.clear();
-						ClientOutgoing.offer(txt);
-					}
 				}
+				gameState.loa.removeAll(destroyed);
+				gameState.loa.addAll(tempLoa);
+				gameState.lop.removeAll(destroyed);
+				for (String p : destroyedPlayers) {
+					gameState.players.remove(p);
+				}
+				if ((destroyed.size() != 0) || (destroyedPlayers.size() != 0)) {
+					System.out.println("Got a hit! " + (destroyed.size() + destroyedPlayers.size()));
+				}
+				ArrayList<Explosion> exKeepers = new ArrayList<Explosion>();
+				for (Explosion ex : gameState.loe) {
+					if (ex.shouldILive(System.currentTimeMillis())) {
+						exKeepers.add(ex);
+					}
+					madeChange++;
+				}
+				gameState.loe = exKeepers;
+				if (gameState.playersChanged() || madeChange > 0) {
+					String txt = gameState.serialize();
+					gameState.los.clear();
+					ClientOutgoing.offer(txt);
+				}
+
 			}
 		}
 
