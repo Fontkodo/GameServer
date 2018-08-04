@@ -131,12 +131,15 @@ public class GameServer {
 
 		void fire(String userid) throws IOException {
 			Player p = getPlayer(userid);
-			long elapsed = System.currentTimeMillis() - p.timestamp;
-			double dx = elapsed * p.vel.x;
-			double dy = elapsed * p.vel.y;
-			Point2D newLoc = new Point2D(p.loc.getX() + dx, p.loc.getY() + dy);
-			lop.add(new Photon(newLoc, p.currentRotation));
-			los.add("http://blasteroids.prototyping.site/assets/sounds/photon.wav");
+			if (p.photonCount > 0) {
+				long elapsed = System.currentTimeMillis() - p.timestamp;
+				double dx = elapsed * p.vel.x;
+				double dy = elapsed * p.vel.y;
+				Point2D newLoc = new Point2D(p.loc.getX() + dx, p.loc.getY() + dy);
+				lop.add(new Photon(newLoc, p.currentRotation, p));
+				p.photonCount -= 1;
+				los.add("http://blasteroids.prototyping.site/assets/sounds/photon.wav");
+			}
 		}
 
 		void disconnect(String userid) throws IOException {
@@ -159,9 +162,11 @@ public class GameServer {
 						madeChange++;
 					}
 				}
-				while (keepers.stream().mapToDouble(a -> a.getArea()).sum() < 50000) {
-					keepers.add(AsteroidFactory.makeAsteroid());
-					madeChange++;
+				if (keepers.stream().mapToDouble(a -> a.getArea()).sum() < 40000) {
+					while (keepers.stream().mapToDouble(a -> a.getArea()).sum() < 50000) {
+						keepers.add(AsteroidFactory.makeAsteroid());
+						madeChange++;
+					}
 				}
 				gameState.loa = keepers;
 				ArrayList<Photon> phKeepers = new ArrayList<Photon>();
@@ -174,6 +179,7 @@ public class GameServer {
 				}
 				gameState.lop = phKeepers;
 				Set<SpaceObject> destroyed = new HashSet<SpaceObject>();
+				Set<String> destroyedPlayers = new HashSet<String>();
 				ArrayList<Asteroid> tempLoa = new ArrayList<Asteroid>();
 				for (Photon ph : gameState.lop) {
 					for (Asteroid a : gameState.loa) {
@@ -185,25 +191,55 @@ public class GameServer {
 							madeChange++;
 						}
 					}
-				}
-				gameState.loa.removeAll(destroyed);
-				gameState.loa.addAll(tempLoa);
-				gameState.lop.removeAll(destroyed);
-				if (destroyed.size() != 0) {
-					System.out.println("Got a hit! " + destroyed.size());
-				}
-				ArrayList<Explosion> exKeepers = new ArrayList<Explosion>();
-				for (Explosion ex : gameState.loe) {
-					if (ex.shouldILive(System.currentTimeMillis())) {
-						exKeepers.add(ex);
+					for (String p : gameState.players.keySet()) {
+						if (gameState.players.get(p).inContactWith(ph)) {
+							if (gameState.players.get(p).shieldLevel > 0) {
+								gameState.players.get(p).shieldLevel -= 1;
+							}
+							if (gameState.players.get(p).shieldLevel <= 0) {
+								gameState.loe.add(gameState.players.get(p).explode());
+								// destroyedPlayers.add(p);
+								destroyed.add(ph);
+								madeChange++;
+							}
+						}
 					}
-					madeChange++;
 				}
-				gameState.loe = exKeepers;
-				if (gameState.playersChanged() || madeChange > 0) {
-					String txt = gameState.serialize();
-					gameState.los.clear();
-					ClientOutgoing.offer(txt);
+				for (Asteroid a : tempLoa) {
+					for (String p : gameState.players.keySet()) {
+						if (gameState.players.get(p).inContactWith(a)) {
+							if (gameState.players.get(p).shieldLevel > 0) {
+								gameState.players.get(p).shieldLevel -= 1;
+							}
+							if (gameState.players.get(p).shieldLevel <= 0) {
+								gameState.loe.add(gameState.players.get(p).explode());
+								// destroyedPlayers.add(p);
+								madeChange++;
+							}
+						}
+					}
+					gameState.loa.removeAll(destroyed);
+					gameState.loa.addAll(tempLoa);
+					gameState.lop.removeAll(destroyed);
+					for (String p : destroyedPlayers) {
+						gameState.players.remove(p);
+					}
+					if ((destroyed.size() != 0) || (destroyedPlayers.size() != 0)) {
+						System.out.println("Got a hit! " + (destroyed.size() + destroyedPlayers.size()));
+					}
+					ArrayList<Explosion> exKeepers = new ArrayList<Explosion>();
+					for (Explosion ex : gameState.loe) {
+						if (ex.shouldILive(System.currentTimeMillis())) {
+							exKeepers.add(ex);
+						}
+						madeChange++;
+					}
+					gameState.loe = exKeepers;
+					if (gameState.playersChanged() || madeChange > 0) {
+						String txt = gameState.serialize();
+						gameState.los.clear();
+						ClientOutgoing.offer(txt);
+					}
 				}
 			}
 		}
