@@ -61,7 +61,7 @@ public class GameServer {
 
 				if (newLoc != null) {
 					players.replace(key, new Player(players.get(key).vel, newLoc, players.get(key).rotvel,
-							players.get(key).currentRotation, players.get(key).userid));
+							players.get(key).currentRotation, players.get(key).userid, players.get(key).score, players.get(key).photonCount, players.get(key).fuel, players.get(key).shieldLevel));
 					_playersChanged = true;
 				}
 			}
@@ -123,8 +123,11 @@ public class GameServer {
 			double dx = p.vel.x * elapsedTime;
 			double dy = p.vel.y * elapsedTime;
 			Player newP = new Player(newVel, new Point2D(p.loc.getX() + dx, p.loc.getY() + dy), p.rotvel,
-					p.currentRotation, p.userid);
+					p.currentRotation, p.userid, p.score, p.photonCount, p.fuel, p.shieldLevel);
 			newP.currentRotation = p.currentRotation;
+			if (newP.fuel > 0) {
+				newP.fuel -= 0.01;
+			}
 			players.replace(p.userid, newP);
 			los.add("http://blasteroids.prototyping.site/assets/sounds/thrust.wav");
 		}
@@ -188,6 +191,7 @@ public class GameServer {
 							tempLoa.addAll(a.giveBirth());
 							destroyed.add(a);
 							destroyed.add(ph);
+							ph.player.score += 1;
 							madeChange++;
 						}
 					}

@@ -18,12 +18,16 @@ public class Player extends SpaceObject{
 	}
 	
 	Player(Velocity vel, Point2D loc, double rotvel, double currentRotation, String userid) throws IOException {
+		this(vel, loc, rotvel, currentRotation, userid, 0, 100, 200, 10);
+	}
+	
+	Player(Velocity vel, Point2D loc, double rotvel, double currentRotation, String userid, long score, long photonCount, double fuel, long shieldLevel) throws IOException {
 		super(vel, loc, rotvel, "http://blasteroids.prototyping.site/assets/images/ship/ship.png", currentRotation);
 		this.userid = userid;
-		this.score = 0;
-		this.photonCount = 100;
-		this.fuel = 200;
-		this.shieldLevel = 10;
+		this.score = score;
+		this.photonCount = photonCount;
+		this.fuel = fuel;
+		this.shieldLevel = shieldLevel;
 	}
 	
 	public Explosion explode() throws IOException {
