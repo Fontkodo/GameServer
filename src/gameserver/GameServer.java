@@ -210,16 +210,16 @@ public class GameServer {
 					}
 				}
 				for (Asteroid a : tempLoa) {
-					for (String p : gameState.players.keySet()) {
-						if (gameState.players.get(p).inContactWith(a)) {
-							if (gameState.players.get(p).shieldLevel > 0) {
-								gameState.players.get(p).shieldLevel -= 1;
+					for (Player p : gameState.players.values()) {
+						if (p.inContactWith(a)) {
+							if (p.shieldLevel > 0) {
+								p.shieldLevel -= 1;
 							}
-							if (gameState.players.get(p).shieldLevel <= 0) {
-								gameState.loe.add(gameState.players.get(p).explode());
+							if (p.shieldLevel <= 0) {
+								gameState.loe.add(p.explode());
 								// destroyedPlayers.add(p);
-								madeChange++;
 							}
+							madeChange++;
 						}
 					}
 				}
