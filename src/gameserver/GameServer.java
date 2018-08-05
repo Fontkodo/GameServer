@@ -24,6 +24,7 @@ public class GameServer {
 		List<String> los = new ArrayList<String>();
 		List<Explosion> loe = new ArrayList<Explosion>();
 		Map<String, Player> players = new HashMap<String, Player>();
+		Map<String, Long> highScore = new HashMap<String, Long>();
 		private boolean _playersChanged = false;
 
 		Player getPlayer(String userid) throws IOException {
@@ -33,6 +34,9 @@ public class GameServer {
 			}
 			Player newPlayer = new Player(new Point2D(200, 200), userid);
 			players.put(userid, newPlayer);
+			if (!highScore.containsKey(userid)) {
+				highScore.put(userid, new Long(0));
+			}
 			return newPlayer;
 		}
 
@@ -57,6 +61,10 @@ public class GameServer {
 					newLoc = new Point2D(-70, oldLoc.getY());
 				} else if (oldLoc.getY() > height + 70) {
 					newLoc = new Point2D(oldLoc.getX(), -70);
+				}
+				
+				if (p.score > highScore.get(key)) {
+					highScore.replace(key, p.score);
 				}
 
 				if (newLoc != null) {
@@ -192,6 +200,9 @@ public class GameServer {
 							destroyed.add(a);
 							destroyed.add(ph);
 							ph.player.score += 1;
+							if (gameState.highScore.get(ph.player.userid) < ph.player.score) {
+								gameState.highScore.replace(ph.player.userid, ph.player.score);	 
+							}
 							madeChange++;
 						}
 					}
@@ -213,7 +224,7 @@ public class GameServer {
 				ArrayList<Asteroid> tempLoa2 = new ArrayList<Asteroid>();
 				for (Player p : gameState.players.values()) {
 					for (Asteroid a : keepers) {
-						if (p.inContactWith(a) && p.vulnerable()) {
+						if (p.inContactWith(a) && p.vulnerable() && !a.isGeode()) {
 							if (p.shieldLevel > 0) {
 								p.shieldLevel -= 1;
 								p.lastInjury = System.currentTimeMillis();
@@ -224,6 +235,15 @@ public class GameServer {
 							}
 							tempLoa2.addAll(a.giveBirth());
 							gameState.loe.add(a.explode());
+							keepers.remove(a);
+							madeChange++;
+							break;
+						}
+						if (p.inContactWith(a) && a.isGeode()) {
+							p.score += 1;
+							p.photonCount = 100;
+							p.fuel = 200;
+							p.shieldLevel = 10;
 							keepers.remove(a);
 							madeChange++;
 							break;

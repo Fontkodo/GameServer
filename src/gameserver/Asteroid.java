@@ -40,4 +40,8 @@ public class Asteroid extends SpaceObject{
 		}
 		return children;
 	}
+	
+	public boolean isGeode() {
+		return false;
+	}
 }

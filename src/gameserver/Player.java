@@ -43,6 +43,7 @@ public class Player extends SpaceObject{
 		ob.put("photonCount", this.photonCount);
 		ob.put("fuel", this.fuel);
 		ob.put("shieldLevel", this.shieldLevel);
+		ob.put("highScore", GameServer.gameState.highScore.getOrDefault(this.userid, 0L));
 		return ob;
 	}
 	
