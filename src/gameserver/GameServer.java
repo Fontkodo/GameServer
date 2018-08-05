@@ -126,7 +126,7 @@ public class GameServer {
 					p.currentRotation, p.userid, p.score, p.photonCount, p.fuel, p.shieldLevel, p.lastInjury);
 			newP.currentRotation = p.currentRotation;
 			if (newP.fuel > 0) {
-				newP.fuel -= 0.01;
+				newP.fuel -= 0.1;
 			}
 			players.replace(p.userid, newP);
 			los.add("http://blasteroids.prototyping.site/assets/sounds/thrust.wav");
