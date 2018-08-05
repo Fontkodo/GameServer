@@ -61,7 +61,7 @@ public class GameServer {
 
 				if (newLoc != null) {
 					players.replace(key, new Player(players.get(key).vel, newLoc, players.get(key).rotvel,
-							players.get(key).currentRotation, players.get(key).userid, players.get(key).score, players.get(key).photonCount, players.get(key).fuel, players.get(key).shieldLevel));
+							players.get(key).currentRotation, players.get(key).userid, players.get(key).score, players.get(key).photonCount, players.get(key).fuel, players.get(key).shieldLevel, players.get(key).lastInjury));
 					_playersChanged = true;
 				}
 			}
@@ -123,7 +123,7 @@ public class GameServer {
 			double dx = p.vel.x * elapsedTime;
 			double dy = p.vel.y * elapsedTime;
 			Player newP = new Player(newVel, new Point2D(p.loc.getX() + dx, p.loc.getY() + dy), p.rotvel,
-					p.currentRotation, p.userid, p.score, p.photonCount, p.fuel, p.shieldLevel);
+					p.currentRotation, p.userid, p.score, p.photonCount, p.fuel, p.shieldLevel, p.lastInjury);
 			newP.currentRotation = p.currentRotation;
 			if (newP.fuel > 0) {
 				newP.fuel -= 0.01;
@@ -196,9 +196,10 @@ public class GameServer {
 						}
 					}
 					for (String p : gameState.players.keySet()) {
-						if (gameState.players.get(p).inContactWith(ph) && (ph.player != gameState.players.get(p))) {
+						if (gameState.players.get(p).inContactWith(ph) && (ph.player != gameState.players.get(p) && gameState.players.get(p).vulnerable())) {
 							if (gameState.players.get(p).shieldLevel > 0) {
 								gameState.players.get(p).shieldLevel -= 1;
+								gameState.players.get(p).lastInjury = System.currentTimeMillis();
 							}
 							if (gameState.players.get(p).shieldLevel <= 0) {
 								gameState.loe.add(gameState.players.get(p).explode());
@@ -209,20 +210,27 @@ public class GameServer {
 						}
 					}
 				}
-				for (Asteroid a : tempLoa) {
-					for (Player p : gameState.players.values()) {
-						if (p.inContactWith(a)) {
+				ArrayList<Asteroid> tempLoa2 = new ArrayList<Asteroid>();
+				for (Player p : gameState.players.values()) {
+					for (Asteroid a : keepers) {
+						if (p.inContactWith(a) && p.vulnerable()) {
 							if (p.shieldLevel > 0) {
 								p.shieldLevel -= 1;
+								p.lastInjury = System.currentTimeMillis();
 							}
 							if (p.shieldLevel <= 0) {
 								gameState.loe.add(p.explode());
 								// destroyedPlayers.add(p);
 							}
+							tempLoa2.addAll(a.giveBirth());
+							gameState.loe.add(a.explode());
+							keepers.remove(a);
 							madeChange++;
+							break;
 						}
 					}
 				}
+				keepers.addAll(tempLoa2);
 				gameState.loa.removeAll(destroyed);
 				gameState.loa.addAll(tempLoa);
 				gameState.lop.removeAll(destroyed);
