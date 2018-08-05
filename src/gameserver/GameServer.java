@@ -125,8 +125,25 @@ public class GameServer {
 
 		void forward(String userid) throws IOException {
 			Player p = getPlayer(userid);
-			Velocity newVel = new Velocity(p.vel.x + (Math.cos(p.currentRotation)) / 1000,
-					p.vel.y - (Math.sin(p.currentRotation)) / 1000);
+			Velocity newVel = new Velocity(p.vel.x + (Math.cos(p.currentRotation)) / 500,
+					p.vel.y - (Math.sin(p.currentRotation)) / 500);
+			long elapsedTime = System.currentTimeMillis() - p.timestamp;
+			double dx = p.vel.x * elapsedTime;
+			double dy = p.vel.y * elapsedTime;
+			Player newP = new Player(newVel, new Point2D(p.loc.getX() + dx, p.loc.getY() + dy), p.rotvel,
+					p.currentRotation, p.userid, p.score, p.photonCount, p.fuel, p.shieldLevel, p.lastInjury);
+			newP.currentRotation = p.currentRotation;
+			if (newP.fuel > 0) {
+				newP.fuel -= 0.1;
+			}
+			players.replace(p.userid, newP);
+			los.add("http://blasteroids.prototyping.site/assets/sounds/thrust.wav");
+		}
+		
+		void backward(String userid) throws IOException {
+			Player p = getPlayer(userid);
+			Velocity newVel = new Velocity(p.vel.x - (Math.cos(p.currentRotation)) / 500,
+					p.vel.y + (Math.sin(p.currentRotation)) / 500);
 			long elapsedTime = System.currentTimeMillis() - p.timestamp;
 			double dx = p.vel.x * elapsedTime;
 			double dy = p.vel.y * elapsedTime;
@@ -387,6 +404,9 @@ public class GameServer {
 								break;
 							case "forward":
 								gameState.forward(userid);
+								break;
+							case "backward":
+								gameState.backward(userid);
 								break;
 							case "fire":
 								gameState.fire(userid);
