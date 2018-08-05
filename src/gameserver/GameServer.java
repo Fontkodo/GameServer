@@ -39,6 +39,15 @@ public class GameServer {
 			}
 			return newPlayer;
 		}
+		
+		void respawn(String userid) throws IOException {
+			players.remove(userid);
+			long timestamp = System.currentTimeMillis();
+			while (System.currentTimeMillis() - timestamp < 3000) {
+				
+			}
+			getPlayer(userid);
+		}
 
 		void removePlayer(String userid) throws IOException {
 			_playersChanged = true;
@@ -231,7 +240,7 @@ public class GameServer {
 							}
 							if (gameState.players.get(p).shieldLevel <= 0) {
 								gameState.loe.add(gameState.players.get(p).explode());
-								// destroyedPlayers.add(p);
+								destroyedPlayers.add(p);
 								destroyed.add(ph);
 								madeChange++;
 							}
@@ -248,7 +257,7 @@ public class GameServer {
 							}
 							if (p.shieldLevel <= 0) {
 								gameState.loe.add(p.explode());
-								// destroyedPlayers.add(p);
+								destroyedPlayers.add(p.userid);
 							}
 							tempLoa2.addAll(a.giveBirth());
 							gameState.loe.add(a.explode());
@@ -272,7 +281,7 @@ public class GameServer {
 				gameState.loa.addAll(tempLoa);
 				gameState.lop.removeAll(destroyed);
 				for (String p : destroyedPlayers) {
-					gameState.players.remove(p);
+					gameState.respawn(p);
 				}
 				if ((destroyed.size() != 0) || (destroyedPlayers.size() != 0)) {
 					System.out.println("Got a hit! " + (destroyed.size() + destroyedPlayers.size()));
