@@ -57,19 +57,21 @@ public class GameServer {
 		boolean playersChanged() throws IOException {
 			for (String key : players.keySet()) {
 				Player p = players.get(key);
+				double halfW = p.img.getWidth()/2;
+				double halfH = p.img.getHeight()/2;
 				long elapsed = System.currentTimeMillis() - p.timestamp;
 				double dx = elapsed * p.vel.x;
 				double dy = elapsed * p.vel.y;
 				Point2D oldLoc = new Point2D(p.loc.getX() + dx, p.loc.getY() + dy);
 				Point2D newLoc = null;
-				if (oldLoc.getX() < -70) {
-					newLoc = new Point2D(width + 70, oldLoc.getY());
-				} else if (oldLoc.getY() < -70) {
-					newLoc = new Point2D(oldLoc.getX(), height + 70);
-				} else if (oldLoc.getX() > width + 70) {
-					newLoc = new Point2D(-70, oldLoc.getY());
-				} else if (oldLoc.getY() > height + 70) {
-					newLoc = new Point2D(oldLoc.getX(), -70);
+				if (oldLoc.getX() < -halfW) {
+					newLoc = new Point2D(width + halfW, oldLoc.getY());
+				} else if (oldLoc.getY() < -halfH) {
+					newLoc = new Point2D(oldLoc.getX(), height + halfH);
+				} else if (oldLoc.getX() > width + halfW) {
+					newLoc = new Point2D(-halfW, oldLoc.getY());
+				} else if (oldLoc.getY() > height + halfH) {
+					newLoc = new Point2D(oldLoc.getX(), -halfH);
 				}
 				
 				if (p.score > highScore.get(key)) {
