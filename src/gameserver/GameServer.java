@@ -16,7 +16,6 @@ public class GameServer {
 
 	static long width = 1400;
 	static long height = 800;
-	static BlockingQueue<Event> eventQueue = new ArrayBlockingQueue<Event>(1);
 
 	static class GameState {
 		List<Asteroid> loa = new ArrayList<Asteroid>();
@@ -39,12 +38,12 @@ public class GameServer {
 			}
 			return newPlayer;
 		}
-		
+
 		void respawn(String userid) throws IOException {
 			players.remove(userid);
 			long timestamp = System.currentTimeMillis();
 			while (System.currentTimeMillis() - timestamp < 3000) {
-				
+
 			}
 			getPlayer(userid);
 		}
@@ -57,8 +56,8 @@ public class GameServer {
 		boolean playersChanged() throws IOException {
 			for (String key : players.keySet()) {
 				Player p = players.get(key);
-				double halfW = p.img.getWidth()/2;
-				double halfH = p.img.getHeight()/2;
+				double halfW = p.img.getWidth() / 2;
+				double halfH = p.img.getHeight() / 2;
 				long elapsed = System.currentTimeMillis() - p.timestamp;
 				double dx = elapsed * p.vel.x;
 				double dy = elapsed * p.vel.y;
@@ -73,14 +72,17 @@ public class GameServer {
 				} else if (oldLoc.getY() > height + halfH) {
 					newLoc = new Point2D(oldLoc.getX(), -halfH);
 				}
-				
+
 				if (p.score > highScore.get(key)) {
 					highScore.replace(key, p.score);
 				}
 
 				if (newLoc != null) {
-					players.replace(key, new Player(players.get(key).vel, newLoc, players.get(key).rotvel,
-							players.get(key).currentRotation, players.get(key).userid, players.get(key).score, players.get(key).photonCount, players.get(key).fuel, players.get(key).shieldLevel, players.get(key).lastInjury));
+					players.replace(key,
+							new Player(players.get(key).vel, newLoc, players.get(key).rotvel,
+									players.get(key).currentRotation, players.get(key).userid, players.get(key).score,
+									players.get(key).photonCount, players.get(key).fuel, players.get(key).shieldLevel,
+									players.get(key).lastInjury));
 					_playersChanged = true;
 				}
 			}
@@ -150,7 +152,7 @@ public class GameServer {
 			players.replace(p.userid, newP);
 			los.add("http://blasteroids.prototyping.site/assets/sounds/thrust.wav");
 		}
-		
+
 		void backward(String userid) throws IOException {
 			Player p = getPlayer(userid);
 			Velocity newVel = new Velocity(p.vel.x - (Math.cos(p.currentRotation)) / 500,
@@ -229,13 +231,14 @@ public class GameServer {
 							destroyed.add(ph);
 							ph.player.score += 1;
 							if (gameState.highScore.get(ph.player.userid) < ph.player.score) {
-								gameState.highScore.replace(ph.player.userid, ph.player.score);	 
+								gameState.highScore.replace(ph.player.userid, ph.player.score);
 							}
 							madeChange++;
 						}
 					}
 					for (String p : gameState.players.keySet()) {
-						if (gameState.players.get(p).inContactWith(ph) && (ph.player != gameState.players.get(p) && gameState.players.get(p).vulnerable())) {
+						if (gameState.players.get(p).inContactWith(ph)
+								&& (ph.player != gameState.players.get(p) && gameState.players.get(p).vulnerable())) {
 							if (gameState.players.get(p).shieldLevel > 0) {
 								gameState.players.get(p).shieldLevel -= 1;
 								gameState.players.get(p).lastInjury = System.currentTimeMillis();
@@ -285,9 +288,6 @@ public class GameServer {
 				for (String p : destroyedPlayers) {
 					gameState.respawn(p);
 				}
-				if ((destroyed.size() != 0) || (destroyedPlayers.size() != 0)) {
-					System.out.println("Got a hit! " + (destroyed.size() + destroyedPlayers.size()));
-				}
 				ArrayList<Explosion> exKeepers = new ArrayList<Explosion>();
 				for (Explosion ex : gameState.loe) {
 					if (ex.shouldILive(System.currentTimeMillis())) {
@@ -309,32 +309,12 @@ public class GameServer {
 		public void run() {
 			while (true) {
 				try {
-					Event event = eventQueue.take();
-					handleAsteroidQuantity();
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		}
-
-	}
-
-	static class TimerEventProducer implements Runnable {
-
-		@Override
-		public void run() {
-			while (true) {
-				try {
+					// eventQueue.take();
 					Thread.sleep(10);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					handleAsteroidQuantity();
+				} catch (IOException | InterruptedException e) {
+					;
 				}
-				eventQueue.offer(new TimerEvent());
 			}
 		}
 
@@ -361,25 +341,25 @@ public class GameServer {
 		@Override
 		public void run() {
 			activeConversations.add(this);
-			while (true) {
-				try {
-					try {
-						ByteArrayOutputStream baos = new ByteArrayOutputStream();
-						do {
-							String txt = this.serializationQueue.take();
-							byte[] b;
-							b = NetString.toNetStringBytes(txt);
-							baos.write(b);
-						} while (this.serializationQueue.peek() != null);
-						this.s.getOutputStream().write(baos.toByteArray());
-						this.s.getOutputStream().flush();
-					} catch (IOException e) {
-						break;
-					}
-				} catch (InterruptedException e) {
+			try {
+				while (true) {
+					ByteArrayOutputStream baos = new ByteArrayOutputStream();
+					do {
+						String txt = this.serializationQueue.take();
+						byte[] b;
+						b = NetString.toNetStringBytes(txt);
+						baos.write(b);
+					} while (this.serializationQueue.peek() != null);
+					this.s.getOutputStream().write(baos.toByteArray());
+					this.s.getOutputStream().flush();
+
 				}
+			} catch (InterruptedException | IOException e) {
+				;
+			} finally {
+				activeConversations.remove(this);
+				System.out.println("terminating server side of port " + s.getPort());
 			}
-			activeConversations.remove(this);
 		}
 
 	}
@@ -397,42 +377,38 @@ public class GameServer {
 			JSONParser p = new JSONParser();
 			try {
 				while (true) {
-					try {
-						String txt = NetString.readString(s.getInputStream());
-						JSONObject ob = (JSONObject) p.parse(txt);
-						String action = (String) ob.get("action");
-						String userid = ob.get("userid").toString();
-						synchronized (gameState) {
-							switch (action) {
-							case "connect":
-								gameState.connect(userid);
-								break;
-							case "left":
-								gameState.left(userid);
-								break;
-							case "right":
-								gameState.right(userid);
-								break;
-							case "forward":
-								gameState.forward(userid);
-								break;
-							case "backward":
-								gameState.backward(userid);
-								break;
-							case "fire":
-								gameState.fire(userid);
-								break;
-							case "disconnect":
-								gameState.disconnect(userid);
-								break;
-							}
+					String txt = NetString.readString(s.getInputStream());
+					JSONObject ob = (JSONObject) p.parse(txt);
+					String action = (String) ob.get("action");
+					String userid = ob.get("userid").toString();
+					synchronized (gameState) {
+						switch (action) {
+						case "connect":
+							gameState.connect(userid);
+							break;
+						case "left":
+							gameState.left(userid);
+							break;
+						case "right":
+							gameState.right(userid);
+							break;
+						case "forward":
+							gameState.forward(userid);
+							break;
+						case "backward":
+							gameState.backward(userid);
+							break;
+						case "fire":
+							gameState.fire(userid);
+							break;
+						case "disconnect":
+							gameState.disconnect(userid);
+							break;
 						}
-					} catch (ParseException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
 					}
 				}
-			} catch (IOException e) {
+			} catch (Exception e) {
+				System.out.println("terminating client side of port " + s.getPort());
 			}
 		}
 
@@ -442,8 +418,6 @@ public class GameServer {
 		System.out.println("Server is running.");
 		Thread eventMonitorThread = new Thread(new QueueMonitor());
 		eventMonitorThread.start();
-		Thread TimerThread = new Thread(new TimerEventProducer());
-		TimerThread.start();
 		ServerSocket ss = new ServerSocket(8353);
 		while (true) {
 			Socket s = ss.accept();
