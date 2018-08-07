@@ -5,8 +5,6 @@ import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
 
-import javafx.geometry.Point2D;
-
 import org.json.simple.*;
 import org.json.simple.parser.*;
 
@@ -17,196 +15,25 @@ public class GameServer {
 	static long width = 1400;
 	static long height = 800;
 
-	static class GameState {
-		List<Asteroid> loa = new ArrayList<Asteroid>();
-		List<Photon> lop = new ArrayList<Photon>();
-		List<String> los = new ArrayList<String>();
-		List<Explosion> loe = new ArrayList<Explosion>();
-		Map<String, Player> players = new HashMap<String, Player>();
-		Map<String, Long> highScore = new HashMap<String, Long>();
-		private boolean _playersChanged = false;
-
-		Player getPlayer(String userid) throws IOException {
-			_playersChanged = true;
-			if (players.containsKey(userid)) {
-				return players.get(userid);
-			}
-			Player newPlayer = new Player(new Point2D(200, 200), userid);
-			players.put(userid, newPlayer);
-			if (!highScore.containsKey(userid)) {
-				highScore.put(userid, new Long(0));
-			}
-			return newPlayer;
-		}
-
-		void respawn(String userid) throws IOException {
-			players.remove(userid);
-			long timestamp = System.currentTimeMillis();
-			while (System.currentTimeMillis() - timestamp < 3000) {
-
-			}
-			getPlayer(userid);
-		}
-
-		void removePlayer(String userid) throws IOException {
-			_playersChanged = true;
-			players.remove(userid);
-		}
-
-		boolean playersChanged() throws IOException {
-			for (String key : players.keySet()) {
-				Player p = players.get(key);
-				double halfW = p.img.getWidth() / 2;
-				double halfH = p.img.getHeight() / 2;
-				long elapsed = System.currentTimeMillis() - p.timestamp;
-				double dx = elapsed * p.vel.x;
-				double dy = elapsed * p.vel.y;
-				Point2D oldLoc = new Point2D(p.loc.getX() + dx, p.loc.getY() + dy);
-				Point2D newLoc = null;
-				if (oldLoc.getX() < -halfW) {
-					newLoc = new Point2D(width + halfW, oldLoc.getY());
-				} else if (oldLoc.getY() < -halfH) {
-					newLoc = new Point2D(oldLoc.getX(), height + halfH);
-				} else if (oldLoc.getX() > width + halfW) {
-					newLoc = new Point2D(-halfW, oldLoc.getY());
-				} else if (oldLoc.getY() > height + halfH) {
-					newLoc = new Point2D(oldLoc.getX(), -halfH);
-				}
-
-				if (p.score > highScore.get(key)) {
-					highScore.replace(key, p.score);
-				}
-
-				if (newLoc != null) {
-					players.replace(key,
-							new Player(players.get(key).vel, newLoc, players.get(key).rotvel,
-									players.get(key).currentRotation, players.get(key).userid, players.get(key).score,
-									players.get(key).photonCount, players.get(key).fuel, players.get(key).shieldLevel,
-									players.get(key).lastInjury));
-					_playersChanged = true;
-				}
-			}
-			try {
-				return _playersChanged;
-			} finally {
-				_playersChanged = false;
-			}
-		}
-
-		String serialize() {
-			JSONObject ob = new JSONObject();
-			JSONArray ar = new JSONArray();
-			for (SpaceObject a : loa) {
-				ar.add(a.toJSON());
-			}
-			for (SpaceObject ph : lop) {
-				ar.add(ph.toJSON());
-			}
-			for (String key : players.keySet()) {
-				Player p = players.get(key);
-				ar.add(p.toJSON());
-			}
-			for (SpaceObject ex : loe) {
-				ar.add(ex.toJSON());
-			}
-			ob.put("SpaceObjects", ar);
-			JSONArray sounds = new JSONArray();
-			for (String s : los) {
-				sounds.add(s);
-			}
-			ob.put("Sounds", sounds);
-			JSONObject tempDim = new JSONObject();
-			tempDim.put("Width", width);
-			tempDim.put("Height", height);
-			ob.put("Dimensions", tempDim);
-			return ob.toJSONString();
-		}
-
-		void connect(String userid) throws IOException {
-			getPlayer(userid);
-		}
-
-		void left(String userid) throws IOException {
-			Player p = getPlayer(userid);
-			p.currentRotation += 5 * Math.PI / 180;
-		}
-
-		void right(String userid) throws IOException {
-			Player p = getPlayer(userid);
-			p.currentRotation -= 5 * Math.PI / 180;
-		}
-
-		void forward(String userid) throws IOException {
-			Player p = getPlayer(userid);
-			Velocity newVel = new Velocity(p.vel.x + (Math.cos(p.currentRotation)) / 500,
-					p.vel.y - (Math.sin(p.currentRotation)) / 500);
-			long elapsedTime = System.currentTimeMillis() - p.timestamp;
-			double dx = p.vel.x * elapsedTime;
-			double dy = p.vel.y * elapsedTime;
-			Player newP = new Player(newVel, new Point2D(p.loc.getX() + dx, p.loc.getY() + dy), p.rotvel,
-					p.currentRotation, p.userid, p.score, p.photonCount, p.fuel, p.shieldLevel, p.lastInjury);
-			newP.currentRotation = p.currentRotation;
-			if (newP.fuel > 0) {
-				newP.fuel -= 0.1;
-			}
-			players.replace(p.userid, newP);
-			los.add("http://blasteroids.prototyping.site/assets/sounds/thrust.wav");
-		}
-
-		void backward(String userid) throws IOException {
-			Player p = getPlayer(userid);
-			Velocity newVel = new Velocity(p.vel.x - (Math.cos(p.currentRotation)) / 500,
-					p.vel.y + (Math.sin(p.currentRotation)) / 500);
-			long elapsedTime = System.currentTimeMillis() - p.timestamp;
-			double dx = p.vel.x * elapsedTime;
-			double dy = p.vel.y * elapsedTime;
-			Player newP = new Player(newVel, new Point2D(p.loc.getX() + dx, p.loc.getY() + dy), p.rotvel,
-					p.currentRotation, p.userid, p.score, p.photonCount, p.fuel, p.shieldLevel, p.lastInjury);
-			newP.currentRotation = p.currentRotation;
-			if (newP.fuel > 0) {
-				newP.fuel -= 0.1;
-			}
-			players.replace(p.userid, newP);
-			los.add("http://blasteroids.prototyping.site/assets/sounds/thrust.wav");
-		}
-
-		void fire(String userid) throws IOException {
-			Player p = getPlayer(userid);
-			if (p.photonCount > 0) {
-				long elapsed = System.currentTimeMillis() - p.timestamp;
-				double dx = elapsed * p.vel.x;
-				double dy = elapsed * p.vel.y;
-				Point2D newLoc = new Point2D(p.loc.getX() + dx, p.loc.getY() + dy);
-				lop.add(new Photon(newLoc, p.currentRotation, p));
-				p.photonCount -= 1;
-				los.add("http://blasteroids.prototyping.site/assets/sounds/photon.wav");
-			}
-		}
-
-		void disconnect(String userid) throws IOException {
-			removePlayer(userid);
-		}
-	}
-
 	static GameState gameState = new GameState();
 
-	static class QueueMonitor implements Runnable {
+	static class GameStateMutator implements Runnable {
 
 		void handleAsteroidQuantity() throws IOException {
 			synchronized (gameState) {
-				int madeChange = 0;
+				boolean changed = false;
 				ArrayList<Asteroid> keepers = new ArrayList<Asteroid>();
 				for (Asteroid a : gameState.loa) {
 					if (a.inBounds(width, height)) {
 						keepers.add(a);
 					} else {
-						madeChange++;
+						changed = true;
 					}
 				}
 				if (keepers.stream().mapToDouble(a -> a.getArea()).sum() < 40000) {
 					while (keepers.stream().mapToDouble(a -> a.getArea()).sum() < 50000) {
 						keepers.add(AsteroidFactory.makeAsteroid());
-						madeChange++;
+						changed = true;
 					}
 				}
 				gameState.loa = keepers;
@@ -215,7 +42,7 @@ public class GameServer {
 					if (ph.inBounds(width, height)) {
 						phKeepers.add(ph);
 					} else {
-						madeChange++;
+						changed = true;
 					}
 				}
 				gameState.lop = phKeepers;
@@ -233,7 +60,7 @@ public class GameServer {
 							if (gameState.highScore.get(ph.player.userid) < ph.player.score) {
 								gameState.highScore.replace(ph.player.userid, ph.player.score);
 							}
-							madeChange++;
+							changed = true;
 						}
 					}
 					for (String p : gameState.players.keySet()) {
@@ -247,7 +74,7 @@ public class GameServer {
 								gameState.loe.add(gameState.players.get(p).explode());
 								destroyedPlayers.add(p);
 								destroyed.add(ph);
-								madeChange++;
+								changed = true;
 							}
 						}
 					}
@@ -267,7 +94,7 @@ public class GameServer {
 							tempLoa2.addAll(a.giveBirth());
 							gameState.loe.add(a.explode());
 							keepers.remove(a);
-							madeChange++;
+							changed = true;
 							break;
 						}
 						if (p.inContactWith(a) && a.isGeode()) {
@@ -276,7 +103,7 @@ public class GameServer {
 							p.fuel = 200;
 							p.shieldLevel = 10;
 							keepers.remove(a);
-							madeChange++;
+							changed = true;
 							break;
 						}
 					}
@@ -293,10 +120,10 @@ public class GameServer {
 					if (ex.shouldILive(System.currentTimeMillis())) {
 						exKeepers.add(ex);
 					}
-					madeChange++;
+					changed = true;
 				}
 				gameState.loe = exKeepers;
-				if (gameState.playersChanged() || madeChange > 0) {
+				if (gameState.playersChanged() || changed) {
 					String txt = gameState.serialize();
 					gameState.los.clear();
 					ClientOutgoing.offer(txt);
@@ -416,7 +243,7 @@ public class GameServer {
 
 	public static void main(String[] args) throws IOException {
 		System.out.println("Server is running.");
-		Thread eventMonitorThread = new Thread(new QueueMonitor());
+		Thread eventMonitorThread = new Thread(new GameStateMutator());
 		eventMonitorThread.start();
 		ServerSocket ss = new ServerSocket(8353);
 		while (true) {
