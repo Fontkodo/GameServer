@@ -254,7 +254,7 @@ public class GameServer {
 		System.out.println("Server is running.");
 		GameState gameState = new GameState();
 		new Thread(new GameStateMutator(gameState)).start();
-		ServerSocket ss = new ServerSocket(8353);
+		ServerSocket ss = new ServerSocket(6081);
 		while (true) {
 			Socket s = ss.accept();
 			new Thread(new ClientOutgoing(s,gameState)).start();
