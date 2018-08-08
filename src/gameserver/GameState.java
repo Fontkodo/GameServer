@@ -12,12 +12,14 @@ import org.json.simple.JSONObject;
 import javafx.geometry.Point2D;
 
 class GameState {
+	
+	static Map<String, Long> highScore = new HashMap<String, Long>();
+	
 	List<Asteroid> loa = new ArrayList<Asteroid>();
 	List<Photon> lop = new ArrayList<Photon>();
 	List<String> los = new ArrayList<String>();
 	List<Explosion> loe = new ArrayList<Explosion>();
 	Map<String, Player> players = new HashMap<String, Player>();
-	Map<String, Long> highScore = new HashMap<String, Long>();
 	private boolean _playersChanged = false;
 
 	Player getPlayer(String userid) throws IOException {
@@ -28,7 +30,7 @@ class GameState {
 		Player newPlayer = new Player(new Point2D(200, 200), userid);
 		players.put(userid, newPlayer);
 		if (!highScore.containsKey(userid)) {
-			highScore.put(userid, new Long(0));
+			highScore.put(userid, Long.valueOf(0));
 		}
 		return newPlayer;
 	}

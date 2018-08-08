@@ -15,11 +15,15 @@ public class GameServer {
 	static long width = 1400;
 	static long height = 800;
 
-	static GameState gameState = new GameState();
-
 	static class GameStateMutator implements Runnable {
+		
+		final GameState gameState;
+		
+		GameStateMutator(GameState gameState){
+			this.gameState = gameState;
+		}
 
-		void handleAsteroidQuantity() throws IOException {
+		void updateState() throws IOException {
 			synchronized (gameState) {
 				boolean changed = false;
 				ArrayList<Asteroid> keepers = new ArrayList<Asteroid>();
@@ -136,9 +140,8 @@ public class GameServer {
 		public void run() {
 			while (true) {
 				try {
-					// eventQueue.take();
 					Thread.sleep(10);
-					handleAsteroidQuantity();
+					updateState();
 				} catch (IOException | InterruptedException e) {
 					;
 				}
@@ -149,13 +152,15 @@ public class GameServer {
 
 	static class ClientOutgoing implements Runnable {
 
-		static Set<ClientOutgoing> activeConversations = Collections.synchronizedSet(new HashSet<ClientOutgoing>());
+		final static Set<ClientOutgoing> activeConversations = Collections.synchronizedSet(new HashSet<ClientOutgoing>());
 
-		private Socket s;
-		private BlockingQueue<String> serializationQueue = new ArrayBlockingQueue<String>(1);
+		final private Socket s;
+		final private BlockingQueue<String> serializationQueue = new ArrayBlockingQueue<String>(1);
+		final private GameState gameState;
 
-		ClientOutgoing(Socket s) {
+		ClientOutgoing(Socket s, GameState gameState) {
 			this.s = s;
+			this.gameState = gameState;
 		}
 
 		static void offer(String serializedWorld) {
@@ -193,10 +198,12 @@ public class GameServer {
 
 	static class ClientIncoming implements Runnable {
 
-		private Socket s;
+		final private Socket s;
+		final private GameState gameState;
 
-		ClientIncoming(Socket s) {
+		ClientIncoming(Socket s, GameState gameState) {
 			this.s = s;
+			this.gameState = gameState;
 		}
 
 		@Override
@@ -231,6 +238,8 @@ public class GameServer {
 						case "disconnect":
 							gameState.disconnect(userid);
 							break;
+						default:
+							System.err.println("unknown client command [" + gameState + "]");
 						}
 					}
 				}
@@ -243,13 +252,13 @@ public class GameServer {
 
 	public static void main(String[] args) throws IOException {
 		System.out.println("Server is running.");
-		Thread eventMonitorThread = new Thread(new GameStateMutator());
-		eventMonitorThread.start();
+		GameState gameState = new GameState();
+		new Thread(new GameStateMutator(gameState)).start();
 		ServerSocket ss = new ServerSocket(8353);
 		while (true) {
 			Socket s = ss.accept();
-			new Thread(new ClientOutgoing(s)).start();
-			new Thread(new ClientIncoming(s)).start();
+			new Thread(new ClientOutgoing(s,gameState)).start();
+			new Thread(new ClientIncoming(s,gameState)).start();
 		}
 	}
 
