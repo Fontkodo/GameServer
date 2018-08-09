@@ -78,6 +78,6 @@ public class SpaceObject {
 	}
 	
 	public double getArea() {
-		return this.img.getWidth()*this.img.getHeight()*this.scale;
+		return this.img.getWidth()*this.img.getHeight()*this.scale*this.scale;
 	}
 }
