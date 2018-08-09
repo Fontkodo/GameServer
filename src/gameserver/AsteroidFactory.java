@@ -12,23 +12,23 @@ public final class AsteroidFactory {
 	
 	public static Asteroid makeAsteroid() throws IOException {
 		
-		Point2D tempLoc = new Point2D(GameServer.width * random.nextDouble(), GameServer.height * random.nextDouble());
-		Point2D loc = new Point2D(0, 0);
+		Coordinate tempLoc = new Coordinate(GameServer.width * random.nextDouble(), GameServer.height * random.nextDouble());
+		Coordinate loc = new Coordinate(0, 0);
 		Velocity vel = new Velocity(random.nextDouble()*0.2-0.1, random.nextDouble()*0.2-0.1);
 		if((Math.abs(vel.x) > Math.abs(vel.y)) && (vel.x > 0)) {
-			loc = new Point2D(-70, tempLoc.getY());
+			loc = new Coordinate(-70, tempLoc.getY());
 		}
 		
 		else if((Math.abs(vel.x) <= Math.abs(vel.y)) && (vel.y >= 0)) {
-			loc = new Point2D(tempLoc.getX(), GameServer.height + 70);
+			loc = new Coordinate(tempLoc.getX(), GameServer.height + 70);
 		}
 		
 		else if((Math.abs(vel.x) > Math.abs(vel.y)) && (vel.x <= 0)) {
-			loc = new Point2D(GameServer.width + 70, tempLoc.getY());
+			loc = new Coordinate(GameServer.width + 70, tempLoc.getY());
 		}
 		
 		else if((Math.abs(vel.x) <= Math.abs(vel.y)) && (vel.y < 0)) {
-			loc = new Point2D(tempLoc.getX(), -70);
+			loc = new Coordinate(tempLoc.getX(), -70);
 		}
 		
 		else {

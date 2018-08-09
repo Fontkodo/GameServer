@@ -9,8 +9,6 @@ import java.util.Map;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
-import javafx.geometry.Point2D;
-
 class GameState {
 	
 	static Map<String, Long> highScore = new HashMap<String, Long>();
@@ -27,7 +25,7 @@ class GameState {
 		if (players.containsKey(userid)) {
 			return players.get(userid);
 		}
-		Player newPlayer = new Player(new Point2D(200, 200), userid);
+		Player newPlayer = new Player(new Coordinate(200, 200), userid);
 		players.put(userid, newPlayer);
 		if (!highScore.containsKey(userid)) {
 			highScore.put(userid, Long.valueOf(0));
@@ -57,16 +55,16 @@ class GameState {
 			long elapsed = System.currentTimeMillis() - p.timestamp;
 			double dx = elapsed * p.vel.x;
 			double dy = elapsed * p.vel.y;
-			Point2D oldLoc = new Point2D(p.loc.getX() + dx, p.loc.getY() + dy);
-			Point2D newLoc = null;
+			Coordinate oldLoc = new Coordinate(p.loc.getX() + dx, p.loc.getY() + dy);
+			Coordinate newLoc = null;
 			if (oldLoc.getX() < -halfW) {
-				newLoc = new Point2D(GameServer.width + halfW, oldLoc.getY());
+				newLoc = new Coordinate(GameServer.width + halfW, oldLoc.getY());
 			} else if (oldLoc.getY() < -halfH) {
-				newLoc = new Point2D(oldLoc.getX(), GameServer.height + halfH);
+				newLoc = new Coordinate(oldLoc.getX(), GameServer.height + halfH);
 			} else if (oldLoc.getX() > GameServer.width + halfW) {
-				newLoc = new Point2D(-halfW, oldLoc.getY());
+				newLoc = new Coordinate(-halfW, oldLoc.getY());
 			} else if (oldLoc.getY() > GameServer.height + halfH) {
-				newLoc = new Point2D(oldLoc.getX(), -halfH);
+				newLoc = new Coordinate(oldLoc.getX(), -halfH);
 			}
 
 			if (p.score > highScore.get(key)) {
@@ -115,6 +113,7 @@ class GameState {
 		tempDim.put("Width", GameServer.width);
 		tempDim.put("Height", GameServer.height);
 		ob.put("Dimensions", tempDim);
+		ob.put("currentMillis", System.currentTimeMillis());
 		return ob.toJSONString();
 	}
 
@@ -139,7 +138,7 @@ class GameState {
 		long elapsedTime = System.currentTimeMillis() - p.timestamp;
 		double dx = p.vel.x * elapsedTime;
 		double dy = p.vel.y * elapsedTime;
-		Player newP = new Player(newVel, new Point2D(p.loc.getX() + dx, p.loc.getY() + dy), p.rotvel,
+		Player newP = new Player(newVel, new Coordinate(p.loc.getX() + dx, p.loc.getY() + dy), p.rotvel,
 				p.currentRotation, p.userid, p.score, p.photonCount, p.fuel, p.shieldLevel, p.lastInjury);
 		newP.currentRotation = p.currentRotation;
 		if (newP.fuel > 0) {
@@ -156,7 +155,7 @@ class GameState {
 		long elapsedTime = System.currentTimeMillis() - p.timestamp;
 		double dx = p.vel.x * elapsedTime;
 		double dy = p.vel.y * elapsedTime;
-		Player newP = new Player(newVel, new Point2D(p.loc.getX() + dx, p.loc.getY() + dy), p.rotvel,
+		Player newP = new Player(newVel, new Coordinate(p.loc.getX() + dx, p.loc.getY() + dy), p.rotvel,
 				p.currentRotation, p.userid, p.score, p.photonCount, p.fuel, p.shieldLevel, p.lastInjury);
 		newP.currentRotation = p.currentRotation;
 		if (newP.fuel > 0) {
@@ -172,7 +171,7 @@ class GameState {
 			long elapsed = System.currentTimeMillis() - p.timestamp;
 			double dx = elapsed * p.vel.x;
 			double dy = elapsed * p.vel.y;
-			Point2D newLoc = new Point2D(p.loc.getX() + dx, p.loc.getY() + dy);
+			Coordinate newLoc = new Coordinate(p.loc.getX() + dx, p.loc.getY() + dy);
 			lop.add(new Photon(newLoc, p.currentRotation, p));
 			p.photonCount -= 1;
 			los.add("http://blasteroids.prototyping.site/assets/sounds/photon.wav");

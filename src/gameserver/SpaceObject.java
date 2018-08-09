@@ -1,25 +1,20 @@
 package gameserver;
 
 import java.io.IOException;
-import java.util.Date;
-import java.util.Random;
-
-import javafx.geometry.*;
-import javafx.scene.image.*;
-
 import org.json.simple.*;
+
 
 public class SpaceObject {
 	final Velocity vel;
-	Point2D loc;
+	Coordinate loc;
 	final double rotvel;
 	final long timestamp;
 	String imgURL;
-	Image img;
+	PackageImage img;
 	double currentRotation;
 	double scale;
 	
-	public SpaceObject(Velocity vel, Point2D loc, double rotvel, String imgURL, double currentRotation) throws IOException {
+	public SpaceObject(Velocity vel, Coordinate loc, double rotvel, String imgURL, double currentRotation) throws IOException {
 		this.vel = vel;
 		this.loc = loc;
 		this.rotvel = rotvel;
@@ -33,7 +28,7 @@ public class SpaceObject {
 	public Status getStatus() {
 		long elapsed = System.currentTimeMillis()-this.timestamp;
 		double angle = elapsed*rotvel;
-		Point2D newLoc = new Point2D(loc.getX() + elapsed*vel.x, loc.getY() + elapsed*vel.y);
+		Coordinate newLoc = new Coordinate(loc.getX() + elapsed*vel.x, loc.getY() + elapsed*vel.y);
 		return new Status(newLoc, angle);
 	}
 	
@@ -50,10 +45,10 @@ public class SpaceObject {
 	}
 	
 	static class Status {
-		final Point2D loc;
+		final Coordinate loc;
 		final double angle;
 		
-		Status(Point2D loc, double angle) {
+		Status(Coordinate loc, double angle) {
 			this.loc = loc;
 			this.angle = angle;
 		}
@@ -75,8 +70,8 @@ public class SpaceObject {
 	}
 	
 	public boolean inContactWith(SpaceObject ob) {
-		Point2D currentLoc = this.getStatus().loc;
-		Point2D obCurrentLoc = ob.getStatus().loc;
+		Coordinate currentLoc = this.getStatus().loc;
+		Coordinate obCurrentLoc = ob.getStatus().loc;
 		double distance = currentLoc.distance(obCurrentLoc);
 		boolean result = (distance < (this.getRadius() + ob.getRadius()));
 		return result;

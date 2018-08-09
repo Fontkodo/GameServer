@@ -3,15 +3,13 @@ package gameserver;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.Random;
 
-import javafx.geometry.Point2D;
 
 public class Asteroid extends SpaceObject{
 	static Random random = new Random(new Date().getTime());
 	
-	public Asteroid(Velocity vel, Point2D loc, double rotvel, String imgURL, double currentRotation) throws IOException {
+	public Asteroid(Velocity vel, Coordinate loc, double rotvel, String imgURL, double currentRotation) throws IOException {
 		super(vel, loc, rotvel, imgURL, currentRotation);
 		this.scale = random.nextDouble() + 0.1;
 	}
