@@ -25,7 +25,7 @@ class GameState {
 		if (players.containsKey(userid)) {
 			return players.get(userid);
 		}
-		Player newPlayer = new Player(new Coordinate(200, 200), userid);
+		Player newPlayer = new Player(new Coordinate(800 - Math.random() * 200, 500 - Math.random()*200), userid);
 		players.put(userid, newPlayer);
 		if (!highScore.containsKey(userid)) {
 			highScore.put(userid, Long.valueOf(0));
@@ -133,8 +133,8 @@ class GameState {
 
 	void forward(String userid) throws IOException {
 		Player p = getPlayer(userid);
-		Velocity newVel = new Velocity(p.vel.x + (Math.cos(p.currentRotation)) / 500,
-				p.vel.y - (Math.sin(p.currentRotation)) / 500);
+		Velocity newVel = new Velocity(p.vel.x + (Math.cos(p.currentRotation)) / 200,
+				p.vel.y - (Math.sin(p.currentRotation)) / 200);
 		long elapsedTime = System.currentTimeMillis() - p.timestamp;
 		double dx = p.vel.x * elapsedTime;
 		double dy = p.vel.y * elapsedTime;
@@ -150,8 +150,8 @@ class GameState {
 
 	void backward(String userid) throws IOException {
 		Player p = getPlayer(userid);
-		Velocity newVel = new Velocity(p.vel.x - (Math.cos(p.currentRotation)) / 500,
-				p.vel.y + (Math.sin(p.currentRotation)) / 500);
+		Velocity newVel = new Velocity(p.vel.x - (Math.cos(p.currentRotation)) / 200,
+				p.vel.y + (Math.sin(p.currentRotation)) / 200);
 		long elapsedTime = System.currentTimeMillis() - p.timestamp;
 		double dx = p.vel.x * elapsedTime;
 		double dy = p.vel.y * elapsedTime;

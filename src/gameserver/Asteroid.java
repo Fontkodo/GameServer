@@ -3,7 +3,9 @@ package gameserver;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 
 public class Asteroid extends SpaceObject{
@@ -18,7 +20,7 @@ public class Asteroid extends SpaceObject{
 		return new Explosion(this.vel, this.getStatus().loc, this.rotvel, this.currentRotation, this.scale);
 	}
 	
-	public ArrayList<Asteroid> giveBirth() throws IOException {
+	public List<Asteroid> giveBirth() throws IOException {
 		ArrayList<Asteroid> children = new ArrayList<Asteroid>();
 		double totalChildArea = 0;
 		if (this.getArea() < 5_000) {
@@ -36,7 +38,7 @@ public class Asteroid extends SpaceObject{
 				c.scale = c.scale * (c.getArea() / totalChildArea);
 			}
 		}
-		return children;
+		return children; //.stream().filter(a -> a.getArea() > 50).collect(Collectors.toList());
 	}
 	
 	public boolean isGeode() {

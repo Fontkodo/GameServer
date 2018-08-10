@@ -51,8 +51,8 @@ public class GameServer {
 				}
 				gameState.lop = phKeepers;
 				Set<SpaceObject> destroyed = new HashSet<SpaceObject>();
-				Set<String> destroyedPlayers = new HashSet<String>();
 				ArrayList<Asteroid> tempLoa = new ArrayList<Asteroid>();
+				List<Player> playersToDestroy = new ArrayList<Player>();
 				for (Photon ph : gameState.lop) {
 					for (Asteroid a : gameState.loa) {
 						if (a.inContactWith(ph)) {
@@ -67,18 +67,18 @@ public class GameServer {
 							changed = true;
 						}
 					}
-					for (String p : gameState.players.keySet()) {
-						if (gameState.players.get(p).inContactWith(ph)
-								&& (ph.player != gameState.players.get(p) && gameState.players.get(p).vulnerable())) {
-							if (gameState.players.get(p).shieldLevel > 0) {
-								gameState.players.get(p).shieldLevel -= 1;
-								gameState.players.get(p).lastInjury = System.currentTimeMillis();
+					for (Player p : gameState.players.values()) {
+						if (p.inContactWith(ph) && (ph.player != p && p.vulnerable())) {
+  							destroyed.add(ph);
+							changed = true;
+							if (p.shieldLevel > 0) {
+								p.shieldLevel -= 1;
+								p.lastInjury = System.currentTimeMillis();
 							}
-							if (gameState.players.get(p).shieldLevel <= 0) {
-								gameState.loe.add(gameState.players.get(p).explode());
-								destroyedPlayers.add(p);
-								destroyed.add(ph);
-								changed = true;
+							if (p.shieldLevel <= 0) {
+								gameState.loe.add(p.explode());
+								playersToDestroy.add(p);
+								break;
 							}
 						}
 					}
@@ -93,7 +93,7 @@ public class GameServer {
 							}
 							if (p.shieldLevel <= 0) {
 								gameState.loe.add(p.explode());
-								destroyedPlayers.add(p.userid);
+								playersToDestroy.add(p);
 							}
 							tempLoa2.addAll(a.giveBirth());
 							gameState.loe.add(a.explode());
@@ -116,9 +116,18 @@ public class GameServer {
 				gameState.loa.removeAll(destroyed);
 				gameState.loa.addAll(tempLoa);
 				gameState.lop.removeAll(destroyed);
-				for (String p : destroyedPlayers) {
-					gameState.respawn(p);
+				if(playersToDestroy.size() > 0) {
+					Map<String,Player> newPlayers = new HashMap<String,Player>();
+					for(String k : gameState.players.keySet()) {
+						Player p = gameState.players.get(k);
+						if(!playersToDestroy.contains(p)) {
+							newPlayers.put(k,p);
+						}
+					}
+					gameState.players = newPlayers;
 				}
+			
+				
 				ArrayList<Explosion> exKeepers = new ArrayList<Explosion>();
 				for (Explosion ex : gameState.loe) {
 					if (ex.shouldILive(System.currentTimeMillis())) {
@@ -140,7 +149,7 @@ public class GameServer {
 		public void run() {
 			while (true) {
 				try {
-					Thread.sleep(10);
+					Thread.sleep(1);
 					updateState();
 				} catch (IOException | InterruptedException e) {
 					;
@@ -254,7 +263,7 @@ public class GameServer {
 		System.out.println("Server is running.");
 		GameState gameState = new GameState();
 		new Thread(new GameStateMutator(gameState)).start();
-		ServerSocket ss = new ServerSocket(6081);
+		ServerSocket ss = new ServerSocket(6081,0,InetAddress.getByName("127.0.0.1"));
 		while (true) {
 			Socket s = ss.accept();
 			new Thread(new ClientOutgoing(s,gameState)).start();
