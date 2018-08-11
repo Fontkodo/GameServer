@@ -11,7 +11,21 @@ import org.json.simple.JSONObject;
 
 class GameState {
 	
-	static Map<String, Long> highScore = new HashMap<String, Long>();
+	private static Map<String, Long> highScore = new HashMap<String, Long>();
+	
+	static long getHighScore(String userid) {
+      synchronized(highScore) {
+    	  return highScore.getOrDefault(userid, 0L);
+      }
+	}
+	
+	static void updatePossibleHighScore(String userid, long score) {
+		synchronized (highScore) {
+			if(score > getHighScore(userid)) {
+				highScore.put(userid, score);
+			}
+		}
+	}
 	
 	List<Asteroid> loa = new ArrayList<Asteroid>();
 	List<Photon> lop = new ArrayList<Photon>();

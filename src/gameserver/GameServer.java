@@ -4,6 +4,7 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 import org.json.simple.*;
 import org.json.simple.parser.*;
@@ -16,16 +17,20 @@ public class GameServer {
 	static long height = 800;
 
 	static class GameStateMutator implements Runnable {
-		
+
 		final GameState gameState;
-		
-		GameStateMutator(GameState gameState){
+
+		GameStateMutator(GameState gameState) {
 			this.gameState = gameState;
 		}
 
 		void updateState() throws IOException {
+			
+			final long currentTimeMillis = System.currentTimeMillis();
+			boolean changed = false;
+			
 			synchronized (gameState) {
-				boolean changed = false;
+
 				ArrayList<Asteroid> keepers = new ArrayList<Asteroid>();
 				for (Asteroid a : gameState.loa) {
 					if (a.inBounds(width, height)) {
@@ -34,12 +39,19 @@ public class GameServer {
 						changed = true;
 					}
 				}
-				if (keepers.stream().mapToDouble(a -> a.getArea()).sum() < 40000) {
-					while (keepers.stream().mapToDouble(a -> a.getArea()).sum() < 50000) {
-						keepers.add(AsteroidFactory.makeAsteroid());
-						changed = true;
+				
+				{
+					double totalArea = keepers.stream().mapToDouble(a -> a.getArea()).sum();
+					if(totalArea < 40_000) {
+						while(totalArea < 50_000) {
+							Asteroid a = AsteroidFactory.makeAsteroid();
+							keepers.add(a);
+							totalArea += a.getArea();
+							changed = true;
+						}
 					}
 				}
+
 				gameState.loa = keepers;
 				ArrayList<Photon> phKeepers = new ArrayList<Photon>();
 				for (Photon ph : gameState.lop) {
@@ -61,19 +73,17 @@ public class GameServer {
 							destroyed.add(a);
 							destroyed.add(ph);
 							ph.player.score += 1;
-							if (gameState.highScore.get(ph.player.userid) < ph.player.score) {
-								gameState.highScore.replace(ph.player.userid, ph.player.score);
-							}
+							gameState.updatePossibleHighScore(ph.player.userid, ph.player.score);
 							changed = true;
 						}
 					}
 					for (Player p : gameState.players.values()) {
 						if (p.inContactWith(ph) && (ph.player != p && p.vulnerable())) {
-  							destroyed.add(ph);
+							destroyed.add(ph);
 							changed = true;
 							if (p.shieldLevel > 0) {
 								p.shieldLevel -= 1;
-								p.lastInjury = System.currentTimeMillis();
+								p.lastInjury = currentTimeMillis;
 							}
 							if (p.shieldLevel <= 0) {
 								gameState.loe.add(p.explode());
@@ -89,7 +99,7 @@ public class GameServer {
 						if (p.inContactWith(a) && p.vulnerable() && !a.isGeode()) {
 							if (p.shieldLevel > 0) {
 								p.shieldLevel -= 1;
-								p.lastInjury = System.currentTimeMillis();
+								p.lastInjury = currentTimeMillis;
 							}
 							if (p.shieldLevel <= 0) {
 								gameState.loe.add(p.explode());
@@ -116,21 +126,20 @@ public class GameServer {
 				gameState.loa.removeAll(destroyed);
 				gameState.loa.addAll(tempLoa);
 				gameState.lop.removeAll(destroyed);
-				if(playersToDestroy.size() > 0) {
-					Map<String,Player> newPlayers = new HashMap<String,Player>();
-					for(String k : gameState.players.keySet()) {
+				if (playersToDestroy.size() > 0) {
+					Map<String, Player> newPlayers = new HashMap<String, Player>();
+					for (String k : gameState.players.keySet()) {
 						Player p = gameState.players.get(k);
-						if(!playersToDestroy.contains(p)) {
-							newPlayers.put(k,p);
+						if (!playersToDestroy.contains(p)) {
+							newPlayers.put(k, p);
 						}
 					}
 					gameState.players = newPlayers;
 				}
-			
-				
+
 				ArrayList<Explosion> exKeepers = new ArrayList<Explosion>();
 				for (Explosion ex : gameState.loe) {
-					if (ex.shouldILive(System.currentTimeMillis())) {
+					if (ex.shouldILive(currentTimeMillis)) {
 						exKeepers.add(ex);
 					}
 					changed = true;
@@ -161,15 +170,14 @@ public class GameServer {
 
 	static class ClientOutgoing implements Runnable {
 
-		final static Set<ClientOutgoing> activeConversations = Collections.synchronizedSet(new HashSet<ClientOutgoing>());
+		final static Set<ClientOutgoing> activeConversations = Collections
+				.synchronizedSet(new HashSet<ClientOutgoing>());
 
 		final private Socket s;
 		final private BlockingQueue<String> serializationQueue = new ArrayBlockingQueue<String>(1);
-		final private GameState gameState;
 
-		ClientOutgoing(Socket s, GameState gameState) {
+		ClientOutgoing(Socket s) {
 			this.s = s;
-			this.gameState = gameState;
 		}
 
 		static void offer(String serializedWorld) {
@@ -256,10 +264,13 @@ public class GameServer {
 			} catch (Exception e) {
 				System.out.println("terminating client side of port " + s.getPort());
 			}
-			if(userid != null) {
+			if (userid != null) {
 				try {
-					gameState.disconnect(userid);
-				} catch (IOException e) {}
+					synchronized (gameState) {
+						gameState.disconnect(userid);
+					}
+				} catch (IOException e) {
+				}
 			}
 		}
 
@@ -269,11 +280,11 @@ public class GameServer {
 		System.out.println("Server is running.");
 		GameState gameState = new GameState();
 		new Thread(new GameStateMutator(gameState)).start();
-		ServerSocket ss = new ServerSocket(6081,0,InetAddress.getByName("127.0.0.1"));
+		ServerSocket ss = new ServerSocket(6081, 0, InetAddress.getByName("127.0.0.1"));
 		while (true) {
 			Socket s = ss.accept();
-			new Thread(new ClientOutgoing(s,gameState)).start();
-			new Thread(new ClientIncoming(s,gameState)).start();
+			new Thread(new ClientOutgoing(s)).start();
+			new Thread(new ClientIncoming(s, gameState)).start();
 		}
 	}
 
