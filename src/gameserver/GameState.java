@@ -47,15 +47,6 @@ class GameState {
 		return newPlayer;
 	}
 
-	void respawn(String userid) throws IOException {
-		players.remove(userid);
-		long timestamp = System.currentTimeMillis();
-		while (System.currentTimeMillis() - timestamp < 3000) {
-
-		}
-		getPlayer(userid);
-	}
-
 	void removePlayer(String userid) throws IOException {
 		_playersChanged = true;
 		players.remove(userid);
@@ -144,11 +135,11 @@ class GameState {
 		Player p = getPlayer(userid);
 		p.currentRotation -= 5 * Math.PI / 180;
 	}
-
-	void forward(String userid) throws IOException {
+	
+	private void movement(String userid, double sign) throws IOException {
 		Player p = getPlayer(userid);
-		Velocity newVel = new Velocity(p.vel.x + (Math.cos(p.currentRotation)) / 200,
-				p.vel.y - (Math.sin(p.currentRotation)) / 200);
+		Velocity newVel = new Velocity(p.vel.x + sign * (Math.cos(p.currentRotation)) / 200,
+					p.vel.y - sign * (Math.sin(p.currentRotation)) / 200);
 		long elapsedTime = System.currentTimeMillis() - p.timestamp;
 		double dx = p.vel.x * elapsedTime;
 		double dy = p.vel.y * elapsedTime;
@@ -162,21 +153,12 @@ class GameState {
 		los.add("http://blasteroids.prototyping.site/assets/sounds/thrust.wav");
 	}
 
+	void forward(String userid) throws IOException {
+		movement(userid, 1);
+	}
+
 	void backward(String userid) throws IOException {
-		Player p = getPlayer(userid);
-		Velocity newVel = new Velocity(p.vel.x - (Math.cos(p.currentRotation)) / 200,
-				p.vel.y + (Math.sin(p.currentRotation)) / 200);
-		long elapsedTime = System.currentTimeMillis() - p.timestamp;
-		double dx = p.vel.x * elapsedTime;
-		double dy = p.vel.y * elapsedTime;
-		Player newP = new Player(newVel, new Coordinate(p.loc.getX() + dx, p.loc.getY() + dy), p.rotvel,
-				p.currentRotation, p.userid, p.score, p.photonCount, p.fuel, p.shieldLevel, p.lastInjury);
-		newP.currentRotation = p.currentRotation;
-		if (newP.fuel > 0) {
-			newP.fuel -= 0.1;
-		}
-		players.replace(p.userid, newP);
-		los.add("http://blasteroids.prototyping.site/assets/sounds/thrust.wav");
+		movement(userid, -1);
 	}
 
 	void fire(String userid) throws IOException {
