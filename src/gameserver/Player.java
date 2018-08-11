@@ -21,7 +21,7 @@ public class Player extends SpaceObject{
 	}
 	
 	Player(Velocity vel, Coordinate loc, double rotvel, double currentRotation, String userid, long score, long photonCount, double fuel, long shieldLevel, double lastInjury) throws IOException {
-		super(vel, loc, rotvel, "http://blasteroids.prototyping.site/assets/images/ship/ship.png", currentRotation);
+		super(vel, loc, rotvel, "http://blasteroids.net/assets/images/ship/ship.png", currentRotation);
 		this.userid = userid;
 		this.score = score;
 		this.photonCount = photonCount;

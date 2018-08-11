@@ -150,7 +150,7 @@ class GameState {
 			newP.fuel -= 0.1;
 		}
 		players.replace(p.userid, newP);
-		los.add("http://blasteroids.prototyping.site/assets/sounds/thrust.wav");
+		los.add("http://blasteroids.net/assets/sounds/thrust.wav");
 	}
 
 	void forward(String userid) throws IOException {
@@ -170,7 +170,7 @@ class GameState {
 			Coordinate newLoc = new Coordinate(p.loc.getX() + dx, p.loc.getY() + dy);
 			lop.add(new Photon(newLoc, p.currentRotation, p));
 			p.photonCount -= 1;
-			los.add("http://blasteroids.prototyping.site/assets/sounds/photon.wav");
+			los.add("http://blasteroids.net/assets/sounds/photon.wav");
 		}
 	}
 
