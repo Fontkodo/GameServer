@@ -10,23 +10,23 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 class GameState {
-	
+
 	private static Map<String, Long> highScore = new HashMap<String, Long>();
-	
+
 	static long getHighScore(String userid) {
-      synchronized(highScore) {
-    	  return highScore.getOrDefault(userid, 0L);
-      }
+		synchronized (highScore) {
+			return highScore.getOrDefault(userid, 0L);
+		}
 	}
-	
+
 	static void updatePossibleHighScore(String userid, long score) {
 		synchronized (highScore) {
-			if(score > getHighScore(userid)) {
+			if (score > getHighScore(userid)) {
 				highScore.put(userid, score);
 			}
 		}
 	}
-	
+
 	List<Asteroid> loa = new ArrayList<Asteroid>();
 	List<Photon> lop = new ArrayList<Photon>();
 	List<String> los = new ArrayList<String>();
@@ -39,7 +39,7 @@ class GameState {
 		if (players.containsKey(userid)) {
 			return players.get(userid);
 		}
-		Player newPlayer = new Player(new Coordinate(800 - Math.random() * 200, 500 - Math.random()*200), userid);
+		Player newPlayer = new Player(new Coordinate(800 - Math.random() * 200, 500 - Math.random() * 200), userid);
 		players.put(userid, newPlayer);
 		if (!highScore.containsKey(userid)) {
 			highScore.put(userid, Long.valueOf(0));
@@ -194,6 +194,5 @@ class GameState {
 
 	void disconnect(String userid) throws IOException {
 		removePlayer(userid);
-		System.out.println("removed " + userid);
 	}
 }

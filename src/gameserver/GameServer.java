@@ -1,15 +1,24 @@
 package gameserver;
 
-import java.io.*;
-import java.net.*;
-import java.util.*;
-import java.util.concurrent.*;
-import java.util.stream.Collectors;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
-import org.json.simple.*;
-import org.json.simple.parser.*;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
-import fontkodo.netstring.*;
+import fontkodo.netstring.NetString;
 
 public class GameServer {
 
@@ -25,10 +34,10 @@ public class GameServer {
 		}
 
 		void updateState() throws IOException {
-			
+
 			final long currentTimeMillis = System.currentTimeMillis();
 			boolean changed = false;
-			
+
 			synchronized (gameState) {
 
 				ArrayList<Asteroid> keepers = new ArrayList<Asteroid>();
@@ -39,7 +48,7 @@ public class GameServer {
 						changed = true;
 					}
 				}
-				
+
 				{
 					double totalArea = keepers.stream().mapToDouble(a -> a.getArea()).sum();
 					if(totalArea < 40_000) {
@@ -170,8 +179,7 @@ public class GameServer {
 
 	static class ClientOutgoing implements Runnable {
 
-		final static Set<ClientOutgoing> activeConversations = Collections
-				.synchronizedSet(new HashSet<ClientOutgoing>());
+		final private static Set<ClientOutgoing> activeConversations = new HashSet<ClientOutgoing>();
 
 		final private Socket s;
 		final private BlockingQueue<String> serializationQueue = new ArrayBlockingQueue<String>(1);
@@ -181,15 +189,21 @@ public class GameServer {
 		}
 
 		static void offer(String serializedWorld) {
-			for (ClientOutgoing co : activeConversations) {
-				co.serializationQueue.poll();
-				co.serializationQueue.offer(serializedWorld);
+			synchronized (activeConversations) {
+				for (ClientOutgoing co : activeConversations) {
+					co.serializationQueue.poll();
+					co.serializationQueue.offer(serializedWorld);
+				}
 			}
 		}
 
 		@Override
 		public void run() {
-			activeConversations.add(this);
+
+			synchronized (activeConversations) {
+				activeConversations.add(this);
+			}
+
 			try {
 				while (true) {
 					ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -206,8 +220,10 @@ public class GameServer {
 			} catch (InterruptedException | IOException e) {
 				;
 			} finally {
-				activeConversations.remove(this);
-				System.out.println("terminating server side of port " + s.getPort());
+				synchronized (activeConversations) {
+					activeConversations.remove(this);
+				}
+				// System.out.println("terminating server side of port " + s.getPort());
 			}
 		}
 
@@ -225,6 +241,7 @@ public class GameServer {
 
 		@Override
 		public void run() {
+			final int session = this.hashCode();
 			String userid = null;
 			JSONParser p = new JSONParser();
 			try {
@@ -237,6 +254,7 @@ public class GameServer {
 						switch (action) {
 						case "connect":
 							gameState.connect(userid);
+							System.out.println(userid + " joined at " + new Date() + " session " + session);
 							break;
 						case "left":
 							gameState.left(userid);
@@ -262,13 +280,14 @@ public class GameServer {
 					}
 				}
 			} catch (Exception e) {
-				System.out.println("terminating client side of port " + s.getPort());
+				// System.out.println("terminating client side of port " + s.getPort());
 			}
 			if (userid != null) {
 				try {
 					synchronized (gameState) {
 						gameState.disconnect(userid);
 					}
+					System.out.println(userid + " left at " + new Date() + " session " + session);
 				} catch (IOException e) {
 				}
 			}
