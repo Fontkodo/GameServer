@@ -217,13 +217,14 @@ public class GameServer {
 
 		@Override
 		public void run() {
+			String userid = null;
 			JSONParser p = new JSONParser();
 			try {
 				while (true) {
 					String txt = NetString.readString(s.getInputStream());
 					JSONObject ob = (JSONObject) p.parse(txt);
 					String action = (String) ob.get("action");
-					String userid = ob.get("userid").toString();
+					userid = ob.get("userid").toString();
 					synchronized (gameState) {
 						switch (action) {
 						case "connect":
@@ -254,6 +255,11 @@ public class GameServer {
 				}
 			} catch (Exception e) {
 				System.out.println("terminating client side of port " + s.getPort());
+			}
+			if(userid != null) {
+				try {
+					gameState.disconnect(userid);
+				} catch (IOException e) {}
 			}
 		}
 

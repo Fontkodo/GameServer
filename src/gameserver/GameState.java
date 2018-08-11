@@ -180,5 +180,6 @@ class GameState {
 
 	void disconnect(String userid) throws IOException {
 		removePlayer(userid);
+		System.out.println("removed " + userid);
 	}
 }
