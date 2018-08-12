@@ -22,20 +22,24 @@ public class Asteroid extends SpaceObject{
 	
 	public List<Asteroid> giveBirth() throws IOException {
 		ArrayList<Asteroid> children = new ArrayList<Asteroid>();
-		double totalChildArea = 0;
-		if (this.getArea() < 5_000) {
-			return children;
-		}
-		int amount = 2 + random.nextInt(10);
-		for (int i = 0; i < amount; i++) {
-			Asteroid child = AsteroidFactory.makeAsteroid();
-			child.loc = this.getStatus().loc;
-			children.add(child);
-			totalChildArea += child.getArea();
-		}
-		if (totalChildArea > this.getArea()) {
-			for (Asteroid c : children) {
-				c.scale = c.scale * (c.getArea() / totalChildArea);
+		boolean isValid = false;
+		while (!isValid) {
+			double totalChildArea = 0;
+			if (this.getArea() < 5_000) {
+				isValid = true;
+				return children;
+			}
+			int amount = 2 + random.nextInt(10);
+			for (int i = 0; i < amount; i++) {
+				Asteroid child = AsteroidFactory.makeAsteroid();
+				child.loc = this.getStatus().loc;
+				children.add(child);
+				totalChildArea += child.getArea();
+			}
+			if (totalChildArea > this.getArea()) {
+				children = new ArrayList<Asteroid>();
+			} else {
+				isValid = true;
 			}
 		}
 		return children; //.stream().filter(a -> a.getArea() > 50).collect(Collectors.toList());
