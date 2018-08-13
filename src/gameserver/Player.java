@@ -34,6 +34,7 @@ public class Player extends SpaceObject{
 		return new Explosion(this.vel, this.getStatus().loc, this.rotvel, this.currentRotation, this.scale);
 	}
 	
+	@SuppressWarnings("unchecked")
 	public JSONObject toJSON() {
 		JSONObject ob = super.toJSON();
 		ob.put("userid", this.userid);

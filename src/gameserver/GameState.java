@@ -92,6 +92,7 @@ class GameState {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	String serialize() {
 		JSONObject ob = new JSONObject();
 		JSONArray ar = new JSONArray();

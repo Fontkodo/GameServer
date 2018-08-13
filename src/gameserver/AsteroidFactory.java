@@ -1,10 +1,8 @@
 package gameserver;
 
-import javafx.geometry.*;
-import javafx.stage.*;
-
-import java.io.*;
-import java.util.*;
+import java.io.IOException;
+import java.util.Date;
+import java.util.Random;
 
 public final class AsteroidFactory {
 
@@ -31,9 +29,6 @@ public final class AsteroidFactory {
 			loc = new Coordinate(tempLoc.getX(), -70);
 		}
 		
-		else {
-			System.out.println("This is some serious fuckshit!");
-		}
 		double rotvel = random.nextDouble()/500;
 		if (random.nextDouble() > 0.95) {
 			return new Geode(vel, loc, rotvel, 0);

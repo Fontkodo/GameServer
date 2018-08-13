@@ -2,8 +2,6 @@ package gameserver;
 
 import org.json.simple.JSONObject;
 
-import javafx.geometry.*;
-
 final class Velocity {
 	
 	final double x;
@@ -18,6 +16,7 @@ final class Velocity {
 		return Math.sqrt(x*x + y*y);
 	}
 	
+	@SuppressWarnings("unchecked")
 	JSONObject toJSON() {
 		JSONObject ob = new JSONObject();
 		ob.put("x", this.x);

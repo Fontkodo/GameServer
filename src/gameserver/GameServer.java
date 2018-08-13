@@ -82,7 +82,7 @@ public class GameServer {
 							destroyed.add(a);
 							destroyed.add(ph);
 							ph.player.score += 1;
-							gameState.updatePossibleHighScore(ph.player.userid, ph.player.score);
+							GameState.updatePossibleHighScore(ph.player.userid, ph.player.score);
 							changed = true;
 						}
 					}
@@ -299,6 +299,7 @@ public class GameServer {
 		System.out.println("Server is running.");
 		GameState gameState = new GameState();
 		new Thread(new GameStateMutator(gameState)).start();
+		@SuppressWarnings("resource")
 		ServerSocket ss = new ServerSocket(6081, 0, InetAddress.getByName("127.0.0.1"));
 		while (true) {
 			Socket s = ss.accept();

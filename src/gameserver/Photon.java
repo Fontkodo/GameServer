@@ -2,8 +2,6 @@ package gameserver;
 
 import java.io.IOException;
 
-import org.json.simple.JSONObject;
-
 public class Photon extends SpaceObject{
 	Player player;
 	

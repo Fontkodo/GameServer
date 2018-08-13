@@ -54,6 +54,7 @@ public class SpaceObject {
 		}
 	}
 	
+	@SuppressWarnings("unchecked")
 	public JSONObject toJSON() {
 		JSONObject ob = new JSONObject();
 		ob.put("vel", this.vel.toJSON());
