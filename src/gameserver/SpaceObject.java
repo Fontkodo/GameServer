@@ -38,10 +38,10 @@ public class SpaceObject {
 	
 	public boolean inBounds(double maxX, double maxY) {
 		Status status = this.getStatus();
-		return (status.loc.getX() > -getRadius()
-				&& status.loc.getX() < maxX+getRadius()
-				&& status.loc.getY() > -getRadius()
-				&& status.loc.getY() < maxY+getRadius());
+		return (status.loc.getX() > -100
+				&& status.loc.getX() < maxX+100
+				&& status.loc.getY() > -100
+				&& status.loc.getY() < maxY+100);
 	}
 	
 	static class Status {

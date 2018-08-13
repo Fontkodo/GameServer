@@ -30,7 +30,7 @@ public final class AsteroidFactory {
 		}
 		
 		double rotvel = random.nextDouble()/500;
-		if (random.nextDouble() > 0.95) {
+		if (random.nextInt(50) == 0) {
 			return new Geode(vel, loc, rotvel, 0);
 		}
 		

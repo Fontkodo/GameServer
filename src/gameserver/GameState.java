@@ -1,5 +1,7 @@
 package gameserver;
 
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,10 +10,29 @@ import java.util.Map;
 
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 
 class GameState {
 
 	private static Map<String, Long> highScore = new HashMap<String, Long>();
+	private static final String highScoreFile = System.getProperty("user.home")
+			+ "/high-score.json";
+	
+	static {
+		System.out.println("attempting to read " + highScoreFile);
+		try {
+			JSONParser parser = new JSONParser();
+			FileReader fos = new FileReader(highScoreFile);
+			JSONObject o = (JSONObject) parser.parse(fos);
+			fos.close();
+			for (Object k : o.keySet()) {
+				highScore.put(k.toString(), ((Number) o.get(k)).longValue());
+			}
+		} catch (Exception e) {
+			System.err.println(e.getMessage());
+			e.printStackTrace();
+		}
+	}
 
 	static long getHighScore(String userid) {
 		synchronized (highScore) {
@@ -22,7 +43,16 @@ class GameState {
 	static void updatePossibleHighScore(String userid, long score) {
 		synchronized (highScore) {
 			if (score > getHighScore(userid)) {
+				System.out.println("new high score " + score + " for " + userid);
 				highScore.put(userid, score);
+				JSONObject o = new JSONObject(highScore);
+				try {
+					FileWriter fw = new FileWriter(highScoreFile);
+					fw.write(o.toJSONString() + "\n");
+					fw.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 	}
