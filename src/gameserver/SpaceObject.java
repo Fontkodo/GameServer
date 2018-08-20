@@ -1,7 +1,8 @@
 package gameserver;
 
 import java.io.IOException;
-import org.json.simple.*;
+
+import org.json.simple.JSONObject;
 
 
 class SpaceObject {
