@@ -4,7 +4,7 @@ import java.io.IOException;
 
 import org.json.simple.JSONObject;
 
-public class Player extends SpaceObject{
+class Player extends SpaceObject{
 	String userid;
 	long score;
 	long photonCount;
@@ -30,12 +30,12 @@ public class Player extends SpaceObject{
 		this.lastInjury = lastInjury;
 	}
 	
-	public Explosion explode() throws IOException {
+	Explosion explode() throws IOException {
 		return new Explosion(this.vel, this.getStatus().loc, this.rotvel, this.currentRotation, this.scale);
 	}
 	
 	@SuppressWarnings("unchecked")
-	public JSONObject toJSON() {
+	JSONObject toJSON() {
 		JSONObject ob = super.toJSON();
 		ob.put("userid", this.userid);
 		ob.put("score", this.score);
@@ -46,7 +46,7 @@ public class Player extends SpaceObject{
 		return ob;
 	}
 	
-	public boolean vulnerable() {
+	boolean vulnerable() {
 		return (System.currentTimeMillis() - this.lastInjury) > 3000;
 	}
 }

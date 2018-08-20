@@ -4,7 +4,7 @@ import java.io.IOException;
 import org.json.simple.*;
 
 
-public class SpaceObject {
+class SpaceObject {
 	final Velocity vel;
 	Coordinate loc;
 	final double rotvel;
@@ -14,7 +14,7 @@ public class SpaceObject {
 	double currentRotation;
 	double scale;
 	
-	public SpaceObject(Velocity vel, Coordinate loc, double rotvel, String imgURL, double currentRotation) throws IOException {
+	SpaceObject(Velocity vel, Coordinate loc, double rotvel, String imgURL, double currentRotation) throws IOException {
 		this.vel = vel;
 		this.loc = loc;
 		this.rotvel = rotvel;
@@ -25,18 +25,18 @@ public class SpaceObject {
 		this.scale = 1;
 	}
 	
-	public Status getStatus() {
+	Status getStatus() {
 		long elapsed = System.currentTimeMillis()-this.timestamp;
 		double angle = elapsed*rotvel;
 		Coordinate newLoc = new Coordinate(loc.getX() + elapsed*vel.x, loc.getY() + elapsed*vel.y);
 		return new Status(newLoc, angle);
 	}
 	
-	public double getRadius() {
+	double getRadius() {
 		return this.scale*(Math.max(img.getWidth(), img.getHeight()))/2;
 	}
 	
-	public boolean inBounds(double maxX, double maxY) {
+	boolean inBounds(double maxX, double maxY) {
 		Status status = this.getStatus();
 		return (status.loc.getX() > -100
 				&& status.loc.getX() < maxX+100
@@ -55,7 +55,7 @@ public class SpaceObject {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public JSONObject toJSON() {
+	JSONObject toJSON() {
 		JSONObject ob = new JSONObject();
 		ob.put("vel", this.vel.toJSON());
 		JSONObject loc = new JSONObject();
@@ -70,7 +70,7 @@ public class SpaceObject {
 		return ob;
 	}
 	
-	public boolean inContactWith(SpaceObject ob) {
+	boolean inContactWith(SpaceObject ob) {
 		Coordinate currentLoc = this.getStatus().loc;
 		Coordinate obCurrentLoc = ob.getStatus().loc;
 		double distance = currentLoc.distance(obCurrentLoc);
@@ -78,7 +78,7 @@ public class SpaceObject {
 		return result;
 	}
 	
-	public double getArea() {
+	double getArea() {
 		return this.img.getWidth()*this.img.getHeight()*this.scale*this.scale;
 	}
 }

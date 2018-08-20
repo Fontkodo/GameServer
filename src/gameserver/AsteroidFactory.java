@@ -4,11 +4,11 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.Random;
 
-public final class AsteroidFactory {
+final class AsteroidFactory {
 
 	static Random random = new Random(new Date().getTime());
 	
-	public static Asteroid makeAsteroid() throws IOException {
+	static Asteroid makeAsteroid() throws IOException {
 		
 		Coordinate tempLoc = new Coordinate(GameServer.width * random.nextDouble(), GameServer.height * random.nextDouble());
 		Coordinate loc = new Coordinate(0, 0);

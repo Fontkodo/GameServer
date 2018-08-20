@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-public final class ImageFactory {
+final class ImageFactory {
 	
 	private static final Map<String, PackageImage> cache = new HashMap<String, PackageImage>();
 	

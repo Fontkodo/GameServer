@@ -2,14 +2,14 @@ package gameserver;
 
 import java.io.IOException;
 
-public class Explosion extends SpaceObject{
+class Explosion extends SpaceObject{
 	
-	public Explosion(Velocity vel, Coordinate loc, double rotvel, double currentRotation, double scale) throws IOException{
+	Explosion(Velocity vel, Coordinate loc, double rotvel, double currentRotation, double scale) throws IOException{
 		super(vel, loc, rotvel, "http://blasteroids.net/assets/images/explosions/Explosion1.png", currentRotation);
 		this.scale = scale;
 	}
 	
-	public boolean shouldILive (long now) {
+	boolean shouldILive (long now) {
 		long millisSinceExplosion = now - this.timestamp;
 		long frame = millisSinceExplosion/50 + 1;
 		

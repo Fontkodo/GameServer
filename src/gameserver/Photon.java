@@ -2,7 +2,7 @@ package gameserver;
 
 import java.io.IOException;
 
-public class Photon extends SpaceObject{
+class Photon extends SpaceObject{
 	Player player;
 	
 	Photon(Coordinate loc, double currentRotation, Player player) throws IOException {

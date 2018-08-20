@@ -7,19 +7,19 @@ import java.util.List;
 import java.util.Random;
 
 
-public class Asteroid extends SpaceObject{
+class Asteroid extends SpaceObject{
 	static Random random = new Random(new Date().getTime());
 	
-	public Asteroid(Velocity vel, Coordinate loc, double rotvel, String imgURL, double currentRotation) throws IOException {
+	Asteroid(Velocity vel, Coordinate loc, double rotvel, String imgURL, double currentRotation) throws IOException {
 		super(vel, loc, rotvel, imgURL, currentRotation);
 		this.scale = random.nextDouble() + 0.1;
 	}
 	
-	public Explosion explode() throws IOException {
+	Explosion explode() throws IOException {
 		return new Explosion(this.vel, this.getStatus().loc, this.rotvel, this.currentRotation, this.scale);
 	}
 	
-	public List<Asteroid> giveBirth() throws IOException {
+	List<Asteroid> giveBirth() throws IOException {
 		ArrayList<Asteroid> children = new ArrayList<Asteroid>();
 		boolean isValid = false;
 		while (!isValid) {
@@ -44,7 +44,7 @@ public class Asteroid extends SpaceObject{
 		return children; //.stream().filter(a -> a.getArea() > 50).collect(Collectors.toList());
 	}
 	
-	public boolean isGeode() {
+	boolean isGeode() {
 		return false;
 	}
 }
